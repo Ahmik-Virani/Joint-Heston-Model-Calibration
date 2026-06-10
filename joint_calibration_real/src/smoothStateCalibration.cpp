@@ -24,7 +24,6 @@ private:
 
     int no_of_threads;  // the number of threads
     // define some locks
-    mutex log_file_lock;
     mutex set_lock_1, set_lock_2;
 
     // index to next particle
@@ -218,18 +217,19 @@ private:
     }
 
     // function to compute the mean and variance of each parameter
+    // [TODO] - I am doing average of variance just like others, is it fine
     vector<pair<double,double>> compute_mean_and_variance(){
         // first is mean, second is variance
-        vector<pair<double, double>> mean_variance(6);
+        vector<pair<double, double>> mean_variance(7);
 
         for(int i = 0 ; i < N ; i++){
-            for(int parameter = 0 ; parameter < 6 ; parameter++){
+            for(int parameter = 0 ; parameter < 7 ; parameter++){
                 mean_variance[parameter].first += weights[i] * particles[i][parameter];
                 mean_variance[parameter].second += weights[i] * particles[i][parameter] * particles[i][parameter];
             }
         }
 
-        for(int parameter = 0 ; parameter < 6 ; parameter++){
+        for(int parameter = 0 ; parameter < 7 ; parameter++){
             mean_variance[parameter].second -= (mean_variance[parameter].first * mean_variance[parameter].first);
         }
 
@@ -308,7 +308,7 @@ public:
     }
 
     // for a particular time step, we update particle of index i
-    void _update_particle(int t, int i, vector<double> &cur_weights, set<int> &reinitialized_indexes, set<int> &surviving_indexes, const double &observed_log_return, ofstream &log_file){
+    void _update_particle(int t, int i, vector<double> &cur_weights, set<int> &reinitialized_indexes, set<int> &surviving_indexes, const double &observed_log_return){
         moveAhead(particles[i], observed_log_return);
 
         // Compute the log likelihood
@@ -326,18 +326,6 @@ public:
 
         weights[i] *= penalty;
         cur_weights[i] *= penalty;
-
-        // Add to log file
-        log_file_lock.lock();
-
-        log_file << "Particle " << i << ":";
-        for(int j = 0 ; j < 6 ; j++){
-            log_file << particles[i][j] << ' ';
-        } 
-        log_file << " - w = " << weights[i];
-        log_file << endl;
-
-        log_file_lock.unlock();
         
         // if any of the values goes less than 50% of max value, then re-initialize
         if(max_likelihood_map[i] == -1){
@@ -377,9 +365,13 @@ public:
     void main(){
 
         // Initialization is done by the constructor 
-
+        
+        ofstream error_file("Errors.csv");
+        error_file << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
         ofstream log_file("smooth_calibration.log");
         ofstream statistical_file("statistics.log");
+        ofstream statistical_csv("parameters.csv");
+        statistical_csv << "mu,vol-of-vol,kappa,theta,rho,lambda,v_t" << '\n';
         for(int t = 1 ; t < time_steps ; t++){
             log_file << "Time: " << t << '\n';
     
@@ -401,7 +393,7 @@ public:
                     int i = next_particle.fetch_add(1);
                     if(i>=N) break;
 
-                    _update_particle(t, i, cur_weights, reinitialized_indexes, surviving_indexes, observed_log_return, log_file);
+                    _update_particle(t, i, cur_weights, reinitialized_indexes, surviving_indexes, observed_log_return);
                 }
             };
 
@@ -442,10 +434,32 @@ public:
 
             vector<pair<double, double>> mean_variance = compute_mean_and_variance();
             statistical_file << "Time " << t << '\n';
-            for(int i = 0 ; i < 6 ; i++){
+            for(int i = 0 ; i < 7 ; i++){
                 statistical_file << index_to_name[i] << ": mean=" << mean_variance[i].first << ", variance=" << mean_variance[i].second << '\n';
+                statistical_csv << mean_variance[i].first << ',';
             }
+            statistical_csv << '\n';
             statistical_file << "-----------------------------------------------\n";
+
+            for(int i = 0 ; i < N ; i++){
+                log_file << "Particle " << i << ":";
+                for(int j = 0 ; j < 7 ; j++){
+                    log_file << particles[i][j] << ' ';
+                } 
+                log_file << " - w = " << weights[i];
+                log_file << endl;
+            }
+
+            // errors to print
+            data.get_penalty(
+                t, 
+                mean_variance[6].first, 
+                mean_variance[2].first + mean_variance[5].first, 
+                (mean_variance[2].first * mean_variance[3].first)/(mean_variance[2].first + mean_variance[5].first + 1e-8), 
+                mean_variance[1].first, 
+                mean_variance[4].first, 
+                error_file
+            );
 
             // Then we resample
 
@@ -476,6 +490,8 @@ public:
 
         log_file.close();
         statistical_file.close();
+        error_file.close();
+        statistical_csv.close();
 
         // At the end just get the final value of the parameters
         auto final_mean_and_variance = compute_mean_and_variance();

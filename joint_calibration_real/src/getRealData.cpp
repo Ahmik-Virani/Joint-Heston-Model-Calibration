@@ -227,4 +227,31 @@ public:
         double average_error = total_error / grid[t].size();
         return exp(-average_error);
     }
+
+    // same as earlier, but we print to a log file
+    void get_penalty(int t, double v0, double kappaQ, double thetaQ, double xi, double rho, ofstream &log_file){
+
+        // go through all the vectors of the grid at timestep t
+        for(int i = 0 ; i < grid[t].size() ; i++){
+            double computed_call_price = 0.0;
+            computed_call_price = qe::hestonCallPrice(
+                get_S(t),                          // spot
+                grid[t][i][0],                     // fixed strike
+                grid[t][i][1],                     // maturity in years (scalar)
+                get_r(t),                          // r
+                get_q(t),                          // q
+                max(1e-8, v0),                     // v0
+                max(1e-8, kappaQ),                 // kappaQ
+                max(1e-8, thetaQ),                 // thetaQ
+                max(1e-8, xi),                     // xi
+                clamp(rho, -0.999, 0.999),         // rho
+                get_date(t)                        // anchor pricing at this day
+            );   
+
+            double true_price = grid[t][i][2];
+            double error = abs(true_price - computed_call_price);
+            // date, strike, maturity, true_price, computed_price, abs_error
+            log_file << index_to_date[t] << ',' << grid[t][i][0] << ',' << grid[t][i][1] << ',' << true_price << ',' << computed_call_price << ',' << error << '\n';
+        }
+    }
 };

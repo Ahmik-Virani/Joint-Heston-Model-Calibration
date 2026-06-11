@@ -501,7 +501,7 @@ public:
         for(auto [u, v] : final_mean_and_variance){
             ctr++;
             final_mean << u;
-            if(ctr != 6){
+            if(ctr != 7){
                 final_mean << ',';
             }
         }

@@ -26,7 +26,7 @@ private:
     vector<double> P_to_Q(const vector<double> &particle) const {
         vector<double> Q_space_params = particle;
         Q_space_params[2] = particle[2] + particle[5];
-        Q_space_params[3] = (particle[2] * particle[3]) / (particle[2] + particle[5]);
+        Q_space_params[3] = (particle[2] * particle[3]) / (particle[2] + particle[5] + 1e-8);
         return Q_space_params;
     }
 
@@ -129,7 +129,7 @@ private:
         QuantLib::Problem problem(cost, constraint, x0);
 
         QuantLib::Simplex solver(0.15);
-        QuantLib::EndCriteria ec(100, 20, 1e-8, 1e-8, 1e-8);
+        QuantLib::EndCriteria ec(10000, 20, 1e-8, 1e-8, 1e-8);
         solver.minimize(problem, ec);
 
         QuantLib::Array xStar = problem.currentValue();

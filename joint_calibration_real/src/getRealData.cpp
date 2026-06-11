@@ -10,8 +10,8 @@
 #include <string>
 #include <sstream>
 #include <ql/time/date.hpp>
-// #include <ql/time/daycounters/actual365fixed.hpp>
-#include <ql/time/calendars/india.hpp>
+#include <ql/time/daycounters/actual365fixed.hpp>
+// #include <ql/time/calendars/india.hpp>
 
 #include "callPrice.cpp"
 
@@ -131,6 +131,7 @@ public:
         grid.resize(S.size());
        
         // get the indian business calendar
+        // [TODO] - check indian days or calendar days
         QuantLib::India calendar;
         while(getline(C_inp, line)){
             stringstream ss(line);
@@ -143,11 +144,16 @@ public:
             QuantLib::Date this_date = parseDate(date);
             QuantLib::Date this_expiry = parseDate(Expiry);
             Size tradingDays = calendar.businessDaysBetween(this_date, this_expiry);
+            
+            // [TODO] - check if this or trading days
+            // testing with calendar days
+            QuantLib::Integer calendarDays = this_expiry - this_date;
+            double maturityYears = std::max(1.0 / 365.0, calendarDays / 365.0);
 
             if(index_to_date.empty() || index_to_date[cur_ind-1]!=date){
                 index_to_date[cur_ind++] = date;
             }
-            grid[cur_ind-1].push_back({stod(Strike_Price), tradingDays/252.0, stod(Close)});
+            grid[cur_ind-1].push_back({stod(Strike_Price), maturityYears, stod(Close)});
         }
         C_inp.close();
     }

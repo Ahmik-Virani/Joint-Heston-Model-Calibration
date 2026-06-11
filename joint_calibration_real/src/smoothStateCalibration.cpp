@@ -14,6 +14,9 @@
 #include <atomic>
 
 #include "surfaceCalibration.cpp"
+#include "surfaceCalibration_cmaes.cpp"
+#include "surfaceCalibration_multistart_lm.cpp"
+#include "surfaceCalibration_multistart_simplex.cpp"
 #include "getRealData.cpp"
 
 using namespace std;
@@ -212,6 +215,9 @@ private:
     void initialization(int particle_index, int time_index){
         vector<double> guess = create_guess();
         surfaceCalibration this_particle(data.get_grid(time_index), guess, data.get_date(time_index), data.get_S(time_index), data.get_r(time_index), data.get_q(time_index));
+        // surfaceCalibrationCMAES this_particle(data.get_grid(time_index), guess, data.get_date(time_index), data.get_S(time_index), data.get_r(time_index), data.get_q(time_index));
+        // surfaceCalibrationMultiStartLM this_particle(data.get_grid(time_index), guess, data.get_date(time_index), data.get_S(time_index), data.get_r(time_index), data.get_q(time_index));
+        // surfaceCalibrationMultiStartSimplex this_particle(data.get_grid(time_index), guess, data.get_date(time_index), data.get_S(time_index), data.get_r(time_index), data.get_q(time_index));
 
         particles[particle_index] = this_particle.getCalibration();
     }

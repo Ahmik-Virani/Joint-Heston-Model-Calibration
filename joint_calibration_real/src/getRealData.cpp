@@ -171,7 +171,7 @@ public:
         // we only need month and year
         string fetch_date = date.substr(3);
 
-        return rates[fetch_date];
+        return (rates[fetch_date]/100.0);
     }
 
     // [TODO] - can do this

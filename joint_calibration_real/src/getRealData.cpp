@@ -67,6 +67,7 @@ private:
 public:
     // Here we will initialize all the values
     getRealData(){
+        cout<<"I am here"<<endl;
         // get the stock path
         ifstream s_inp("S_path.csv");
         if (!s_inp.is_open()) {

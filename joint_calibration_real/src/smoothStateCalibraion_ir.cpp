@@ -12,15 +12,12 @@
 #include <set>
 #include <thread>
 #include <atomic>
-#include <unsupported/Eigen/NonLinearOptimization>
-#include <unsupported/Eigen/NumericalDiff>
-#include <Eigen/Dense>
+
 #include "surfaceCalibration.cpp"
 #include "getRealData.cpp"
 
 using namespace std;
-// From joint_calibration_real:
-// g++ -std=c++17 app/main.cpp -I/data1/sandesh/local/include -I../../eigen-3.4.0 -IQuantLib -Iinclude -L/data1/sandesh/local/lib -lQuantLib -Wl,-rpath,/data1/sandesh/local/lib -pthread -o run_main && ./run_main
+//g++ quant_lib_test.cpp -std=c++17 -I$HOME/local/include -L$HOME/local/lib -lQuantLib -o test
 class smoothStateCalibration {
 private:
     getRealData data;
@@ -219,105 +216,34 @@ private:
         particles[particle_index] = this_particle.getCalibration();
     }
 
-    void initialization_lms(int time_index) {
+    void initialization_lms(vector<vector<double>>& particles){
         thread_local mt19937 local_rng{random_device{}()};
         normal_distribution<double> normal(0.0, 1.0);
-    
-        vector<double> guess = create_guess();
-    
-        surfaceCalibrationLaplacian this_particle(
-            data.get_grid(time_index),
-            guess,
-            data.get_date(time_index),
-            data.get_S(time_index),
-            data.get_r(time_index),
-            data.get_q(time_index)
-        );
-    
-        surfaceCalibrationLaplacian::MAP map_result =
-            this_particle.getCalibration();
-    
+        vector <double> guess = create_guess();
+        surfaceCalibrationLaplacian this_particle(data.get_grid(time_index), guess, data.get_date(time_index), data.get_S(time_index), data.get_r(time_index), data.get_q(time_index));
+        surfaceCalibrationLaplacian::MAP map_result = this_particle.getCalibration(); 
         Eigen::VectorXd mu(7);
         for(int i = 0; i < 7; i++) {
             mu(i) = map_result.result[i];
         }
-    
-        Eigen::MatrixXd cov = map_result.covariance_p;
-    
+
         Eigen::LLT<Eigen::MatrixXd> llt(cov);
-    
-        if(llt.info() != Eigen::Success) {
-            cov += 1e-6 * Eigen::MatrixXd::Identity(7, 7);
-            llt.compute(cov);
-        }
-    
         Eigen::MatrixXd L = llt.matrixL();
-    
-        for(int p = 0; p < N; p++) {
+
+        for(int p = 0; p < paritcles.size();p++){
             Eigen::VectorXd z(7);
-    
             for(int j = 0; j < 7; j++) {
                 z(j) = normal(local_rng);
             }
-    
             Eigen::VectorXd sample = mu + L * z;
-    
+
             particles[p].resize(7);
-    
+
             for(int j = 0; j < 7; j++) {
                 particles[p][j] = sample(j);
             }
-    
-            particles[p][1] = max(particles[p][1], 1e-8);
-            particles[p][2] = max(particles[p][2], 1e-8);
-            particles[p][3] = max(particles[p][3], 1e-8);
-            particles[p][4] = clamp(particles[p][4], -0.999, 0.999);
-            particles[p][6] = max(particles[p][6], 1e-8);
         }
-    }
 
-    void initialization_lms_one_particle(int particle_index,int time_index){
-        thread_local mt19937 local_rng{random_device{}()};
-        normal_distribution<double> normal(0.0, 1.0);
-    
-        vector<double> guess = create_guess();
-    
-        surfaceCalibrationLaplacian this_particle(
-            data.get_grid(time_index),
-            guess,
-            data.get_date(time_index),
-            data.get_S(time_index),
-            data.get_r(time_index),
-            data.get_q(time_index)
-        );
-        surfaceCalibrationLaplacian::MAP map_result = this_particle.getCalibration();
-        Eigen::VectorXd mu(7);
-        for(int i = 0;i < 7;i++){
-            mu(i) = map_result.result[i];
-        }
-        Eigen::MatrixXd cov = map_result.covariance_p;
-        Eigen::LLT<Eigen::MatrixXd> llt(cov);
-        if(llt.info() != Eigen::Success) {
-            cov += 1e-6 * Eigen::MatrixXd::Identity(7, 7);
-            llt.compute(cov);
-        }
-        Eigen::MatrixXd L = llt.matrixL();
-        Eigen::VectorXd z(7);
-        for(int j = 0; j < 7; j++){
-            z(j) = normal(local_rng);
-        }
-        Eigen::VectorXd sample = mu + L * z;
-        particles[particle_index].resize(7);
-
-        for(int j = 0; j < 7; j++) {
-            particles[particle_index][j] = sample(j);
-        }
-    
-        particles[particle_index][1] = max(particles[particle_index][1], 1e-8);
-        particles[particle_index][2] = max(particles[particle_index][2], 1e-8);
-        particles[particle_index][3] = max(particles[particle_index][3], 1e-8);
-        particles[particle_index][4] = clamp(particles[particle_index][4], -0.999, 0.999);
-        particles[particle_index][6] = max(particles[particle_index][6], 1e-8);
     }
 
     // function to compute the mean and variance of each parameter
@@ -407,14 +333,7 @@ public:
             v_value[0][i] = particles[i][6];
             ancestor[0][i] = i;
         }
-
-        // LMS initialization
-        // initialization_lms(0);
-        // for(int i = 0 ; i < N ; i++){
-        //     v_value[0][i] = particles[i][6];
-        //     ancestor[0][i] = i;
-        // }
-
+        
 
 
         // initialize the boolean use_ESS
@@ -451,7 +370,6 @@ public:
             max_likelihood_map[i] = max(max_likelihood_map[i], cur_weights[i]);
             if(cur_weights[i] < 0.5 * max_likelihood_map[i]){
                 initialization(i, t);
-                //initialization_lms_one_particle(i, t);
                 max_likelihood_map[i] = -1;
                 ctr_reinit.fetch_add(1);
 

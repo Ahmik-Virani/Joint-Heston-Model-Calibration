@@ -11,7 +11,7 @@
 #include <sstream>
 #include <ql/time/date.hpp>
 #include <ql/time/daycounters/actual365fixed.hpp>
-// #include <ql/time/calendars/india.hpp>
+#include <ql/time/calendars/india.hpp>
 
 #include "callPrice.cpp"
 
@@ -144,6 +144,7 @@ public:
             QuantLib::Date this_date = parseDate(date);
             QuantLib::Date this_expiry = parseDate(Expiry);
             Size tradingDays = calendar.businessDaysBetween(this_date, this_expiry);
+            double tradingYears = tradingDays/252.0;
             
             // [TODO] - check if this or trading days
             // testing with calendar days
@@ -153,7 +154,8 @@ public:
             if(index_to_date.empty() || index_to_date[cur_ind-1]!=date){
                 index_to_date[cur_ind++] = date;
             }
-            grid[cur_ind-1].push_back({stod(Strike_Price), maturityYears, stod(Close)});
+            grid[cur_ind-1].push_back({stod(Strike_Price), tradingYears, stod(Close)});
+            // grid[cur_ind-1].push_back({stod(Strike_Price), maturityYears, stod(Close)});
         }
         C_inp.close();
     }

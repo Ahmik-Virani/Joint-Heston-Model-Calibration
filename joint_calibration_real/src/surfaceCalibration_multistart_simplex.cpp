@@ -122,7 +122,7 @@ private:
         QuantLib::Problem problem(cost, constraint, x);
 
         QuantLib::Simplex solver(0.15);
-        QuantLib::EndCriteria ec(10000, 20, 1e-8, 1e-8, 1e-8);
+        QuantLib::EndCriteria ec(100, 20, 1e-8, 1e-8, 1e-8);
         solver.minimize(problem, ec);
 
         QuantLib::Array xStar = problem.currentValue();

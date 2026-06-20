@@ -1,0 +1,18 @@
+1. Baselines
+    - Check if more are possible
+2. Models
+    - Stock (BS/Heston)
+    - Forex (BS/Heston)
+    - Crypto (Jump Diffusion)
+
+    - Energy Markets
+    - Kinematics
+3. Surface Calibration (Initialization)
+    - Better Techniques
+4. Experiments
+    - (Novel) Parameters vs time (How long do parameters actually stay constant and if they do)
+    - Call Price Errors
+    - Smile?
+    - Time Based?
+    - Accuracy vs Number of Particles
+    - Accuracy vs Sparsity of data

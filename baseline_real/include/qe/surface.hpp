@@ -17,7 +17,7 @@ namespace qe {
         vector<vector<double>> C;
         // vector<vector<Real>> ImpliedVol;
         double S0;
-        // Real v0;
+        Real v0;
         double r;
         double q;
         Date evalDate;

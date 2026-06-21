@@ -1,6 +1,6 @@
 #include <qe/params.hpp>
 #include <qe/path.hpp>
-#include <qe/pricing.hpp>
+// #include <qe/pricing.hpp>
 #include <qe/surface.hpp>
 #include <qe/surfacefit.hpp>
 #include <qe/garch.hpp>
@@ -127,7 +127,7 @@ int main() {
     // print_Surfaces(surfaces);
     // cout<<"-----------------------------------------------------------"<<endl;
 
-    // calParams PARAMS;
+    calParams PARAMS;
 
 
     // Single Surface Calibration Starts
@@ -136,8 +136,8 @@ int main() {
     // print_Callgrid(CalibrationSurface);
 
     int repeat_cal = 10;
-    // vector<HestonSurfaceFit>SurfaceFitsParams;
-    // vector<HestonSurfaceFit>SurfaceFitGuesses;
+    vector<HestonSurfaceFit>SurfaceFitsParams;
+    vector<HestonSurfaceFit>SurfaceFitGuesses;
     
     random_device rd;                // seed source
     mt19937 gen(rd());               // Mersenne Twister RNG
@@ -156,13 +156,15 @@ int main() {
 
     int no_of_timesteps = Data.get_time_steps();
 
-    ostream single_state_calibration_errors("single_state_errors.csv");
+    ofstream single_state_calibration_errors("single_state_errors.csv");
+    single_state_calibration_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
     for(int t = 0 ; t < no_of_timesteps ; t++){
         CallGrid CalibrationSurface;
         CalibrationSurface.C = Data.get_grid(t);
         CalibrationSurface.S0 = Data.get_S(t);
         CalibrationSurface.r = Data.get_r(t);
         CalibrationSurface.q = Data.get_q(t);
+        CalibrationSurface.v0 = Data.get_guess()[6];
         
         // [TODO] check if eval data is todays date
         CalibrationSurface.evalDate = Data.get_date(t);
@@ -185,7 +187,7 @@ int main() {
             }
         }
 
-        Data.get_penalty(t, SingleSurfaceParams[best_idx].v0, SingleSurfaceParams[best_idx].kappaQ, SingleSurfaceParams[best_idx].thetaQ, SingleSurfaceParams[best_idx].xi, SingleSurfaceParams[best_idx].rho, single_state_calibration_errors);
+        Data.get_penalty(t, SurfaceFitsParams[best_idx].v0, SurfaceFitsParams[best_idx].kappaQ, SurfaceFitsParams[best_idx].thetaQ, SurfaceFitsParams[best_idx].xi, SurfaceFitsParams[best_idx].rho, single_state_calibration_errors);
     }
     // cout << "Initial Guess" <<endl;
     // cout<<SurfaceFitGuesses[best_idx]<<endl;
@@ -194,26 +196,44 @@ int main() {
     // PARAMS.SingleSurfaceParams = SurfaceFitsParams[best_idx];
     // cout << Q << endl;
     single_state_calibration_errors.close();
-    Single Surface Calibration Ends
+    // Single Surface Calibration Ends
 
-    // [TODO]
-    // // Multi Surface Calibration Starts
-    // HestonMultiSurfaceFit phi_init;
-    // phi_init.kappaQ = dist_kappaQ(gen);
-    // phi_init.thetaQ = dist_thetaQ(gen);
-    // phi_init.xi = dist_xi(gen);
-    // phi_init.rho = dist_rho(gen);
-    // vector<CallGrid> few_surfaces;
-    // int few = 5;
-    // for(int i = 0; i < few; i++){
-    //     few_surfaces.push_back(surfaces[i]);
-    // }
+    // Multi Surface Calibration Starts
+    ofstream multi_state_calibration_errors("multi_state_errors.csv");
+    multi_state_calibration_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
 
-    // HestonMultiSurfaceFit best_phi_init = MultiSurfaceRandomSearch(few_surfaces,dc,cal,phi_init,30);
+    HestonMultiSurfaceFit phi_init;
+    phi_init.kappaQ = guess_P[2] + guess_P[5];
+    phi_init.thetaQ = (double)(guess_P[2] * guess_P[3]) / (double)(guess_P[2] + guess_P[5]);
+    phi_init.xi = guess_P[1];
+    phi_init.rho = guess_P[4];
+    // [TODO] - can finetune
+    int few = 5;
+    for(int t = 0 ; t < Data.get_time_steps()-few+1 ; t+=few){
+        vector<CallGrid> few_surfaces;
+        for(int i = t; i < few+t; i++){
+            CallGrid this_CalibrationSurface;
+            this_CalibrationSurface.C = Data.get_grid(i);
+            this_CalibrationSurface.S0 = Data.get_S(i);
+            this_CalibrationSurface.r = Data.get_r(i);
+            this_CalibrationSurface.q = Data.get_q(i);
+            this_CalibrationSurface.v0 = Data.get_guess()[6];
+            
+            // [TODO] check if eval data is todays date
+            this_CalibrationSurface.evalDate = Data.get_date(i);
+            few_surfaces.push_back(this_CalibrationSurface);
+        }
+        HestonMultiSurfaceFit best_phi_init = MultiSurfaceRandomSearch(few_surfaces,dc,cal,phi_init,30);
+        HestonMultiSurfaceFit best_phi = nedlerMeadMultiSurface(few_surfaces,dc,cal,best_phi_init);
+        PARAMS.MultSurfaceParams = best_phi;
+
+        for(int i = t ; i < few+t ; i++){
+            Data.get_penalty(i, PARAMS.MultSurfaceParams.v0_by_surface[i-t], PARAMS.MultSurfaceParams.kappaQ, PARAMS.MultSurfaceParams.thetaQ, PARAMS.MultSurfaceParams.xi, PARAMS.MultSurfaceParams.rho, multi_state_calibration_errors);
+        }
+    }
+
     // cout<<best_phi_init<<endl;
-    // HestonMultiSurfaceFit best_phi = nedlerMeadMultiSurface(few_surfaces,dc,cal,best_phi_init);
     // cout<<best_phi<<endl;
-    // PARAMS.MultSurfaceParams = best_phi;
     // cout<<"Ground Truth v0:"<<endl;
     // for(int i = 0; i < few_surfaces.size();i++){
     //     cout<<few_surfaces[i].v0<<",  ";
@@ -222,7 +242,8 @@ int main() {
     // cout<<"\n";
     // cout << Q << endl;
     // cout<<"\n";
-    // // Multi Surface Calibration Ends
+    multi_state_calibration_errors.close();
+    // Multi Surface Calibration Ends
     
     // //GARCH Calibration Starts
     // GarchParams gParams = garchPathFit(ppath);

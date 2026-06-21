@@ -1,5 +1,3 @@
-#pragma once
-
 #include <ql/quantlib.hpp>
 #include <algorithm>
 #include <cmath>

@@ -12,8 +12,8 @@
 #include <ql/time/date.hpp>
 #include <ql/time/daycounters/actual365fixed.hpp>
 // #include <ql/time/calendars/india.hpp>
-
-#include "callPrice.cpp"
+#include "qe/surface.hpp"
+#include <qe/callPrice.hpp>
 
 using namespace std;
 using namespace QuantLib;
@@ -134,6 +134,8 @@ public:
         // get the indian business calendar
         // [TODO] - check indian days or calendar days
         QuantLib::India calendar;
+
+        int working=0, not_working=0;
         while(getline(C_inp, line)){
             stringstream ss(line);
             string date, Expiry, Strike_Price, Close;
@@ -156,11 +158,23 @@ public:
             }
 
             // [TODO] add q, i.e. replace 0.0
-            double implied_vol = qe::impliedVolFromCallPrice(stod(Close), S[cur_ind-1], stod(Strike_Price), maturityYears, rates[index_to_date[cur_ind-1].substr(3)]/100.0, 0.0);
 
-            grid[cur_ind-1].push_back({stod(Strike_Price), maturityYears, stod(Close), implied_vol, double(tradingDays)});
+            // added handling
+            try
+            {
+                double implied_vol = qe::impliedVolFromCallPrice(stod(Close), S[cur_ind-1], stod(Strike_Price), maturityYears, rates[index_to_date[cur_ind-1].substr(3)]/100.0, 0.0);
+                grid[cur_ind-1].push_back({stod(Strike_Price), maturityYears, stod(Close), implied_vol, double(tradingDays)});
+                working++;
+            }
+            catch(const QuantLib::Error& e)
+            {
+                not_working++;
+                continue;
+            }
         }
 
+        cout << "The data in grid is: " << working << endl;
+        cout << "The data missed is: " << not_working << endl;
         C_inp.close();
     }
 

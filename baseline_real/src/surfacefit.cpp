@@ -94,7 +94,7 @@ namespace qe{
         // const Size K = grid.strikes.size();
         // helpers.reserve(M * K);
     
-        for (int i = 0; i < grid.size();i++){
+        for (int i = 0; i < grid.C.size();i++){
             Integer days = grid.C[i][4];
             QL_REQUIRE(days > 0, "Maturity must be after today");
             Period maturityPeriod(days,Days);
@@ -176,35 +176,32 @@ namespace qe{
         // we need a vector of helpers for M*K (all maturity and grid values)
         
         vector<ext::shared_ptr<CalibrationHelper>> helpers;
-        const Size M = grid.maturities.size();
-        const Size K = grid.strikes.size();
-        helpers.reserve(M * K);
+        // const Size M = grid.maturities.size();
+        // const Size K = grid.strikes.size();
+        // helpers.reserve(M * K);
 
         Real sse = 0.0;
     
-        for (int iT = 0; iT < grid.maturities.size();iT++){
-            Integer days = cal.businessDaysBetween(grid.evalDate, grid.maturities[iT]);
+        for (int i = 0; i < grid.C.size();i++){
+            Integer days = grid.C[i][4];
             QL_REQUIRE(days > 0, "Maturity must be after today");
             Period maturityPeriod(days,Days);
-            for(int iK = 0; iK < grid.strikes.size();iK++){
-                Real strike = grid.strikes[iK];
-                Real iv_mkt = grid.ImpliedVol[iT][iK];
-                Handle<Quote> volQuote(ext::make_shared<SimpleQuote>(iv_mkt));
-                auto h = ext::make_shared<HestonModelHelper>(
-                    maturityPeriod,         // maturity as Period
-                    cal,
-                    grid.S0,                   // spot
-                    strike,
-                    volQuote,               // market implied vol quote
-                    rTS,
-                    qTS
-                );
-                h->setPricingEngine(engine);
-                Real err = h->calibrationError();
-                sse += (err*err);
-            }
+            Real strike = grid.C[i][0];
+            Real iv_mkt = grid.C[i][3];
+            Handle<Quote> volQuote(ext::make_shared<SimpleQuote>(iv_mkt));
+            auto h = ext::make_shared<HestonModelHelper>(
+                maturityPeriod,         // maturity as Period
+                cal,
+                grid.S0,                   // spot
+                strike,
+                volQuote,               // market implied vol quote
+                rTS,
+                qTS
+            );
+            h->setPricingEngine(engine);
+            Real err = h->calibrationError();
+            sse += (err*err);
         }
-        //cout<<"SSE:"<<sse<<endl;
         return sse;
     }
 

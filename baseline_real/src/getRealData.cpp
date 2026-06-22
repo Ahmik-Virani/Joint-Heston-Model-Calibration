@@ -201,6 +201,7 @@ public:
 
     // get log return at time i
     double get_log_return(int i){
+        if(i==0) return log(S[i]);
         return log(S[i] / S[i-1]);
     }
 

@@ -41,9 +41,10 @@ void writePathToCSV(const PPath& ppath,const string& filename){
 
     file << fixed << setprecision(8);
     file << "log S,v,log Returns\n";
-    int N = ppath.logS.size();
-    for (int i = 0; i < N;i++){
-        file<<ppath.logS[i]<<","<<ppath.v[i]<<","<<ppath.returns[i] << "\n";
+    int N = ppath.returns.size();
+    for (int i = 1; i < N;i++){
+        // file<<ppath.logS[i]<<","<<ppath.v[i]<<","<<ppath.returns[i] << "\n";
+        file<<ppath.returns[i]<<"\n";
         // if (i == 0){
         //     file<<ppath.logS[i]<<","<<ppath.v[i]<<","<<0.0 << "\n";
         // }
@@ -109,7 +110,8 @@ int main() {
     // cout << Q << endl;
 
 
-    // Size steps = 252;
+    // [TODO] check if this is for 1 year, or steps of 
+    Size steps = 252;
     // Size seed  = 42;
 
     // PPath ppath = logReturns(P, steps, seed);
@@ -245,50 +247,85 @@ int main() {
     multi_state_calibration_errors.close();
     // Multi Surface Calibration Ends
     
-    // //GARCH Calibration Starts
-    // GarchParams gParams = garchPathFit(ppath);
-    // cout<<gParams<<endl;
-    // vector<double>daily_hPath = getGarchPath(gParams,ppath);
-    // vector<double>annual_hPath(daily_hPath.size(),0.0);
-    // for (int i = 0; i < daily_hPath.size(); i++){
-    //     annual_hPath[i] = daily_hPath[i] * steps;
-    // }
+    //GARCH Calibration Starts
+    ofstream garch_errors("garch_errors.csv");
+    garch_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
 
-    // // cout<<"v path length:"<<ppath.v.size()<<endl;
-    // // cout<<"h path length:"<<annual_hPath.size()<<endl;
+    // number of time stamps required
+    // [TODO] - tune
+    int prev_path_steps = 5;
+    for(int i = prev_path_steps ; i < no_of_timesteps ; i++){
+        PPath ppath;
+        ppath.returns.resize(prev_path_steps+1);
+        for(int timestep = i-prev_path_steps ; timestep <= i ; timestep++){
+            ppath.returns[timestep] = Data.get_log_return(timestep);
+        }
+        GarchParams gParams = garchPathFit(ppath);
+        // cout<<gParams<<endl;
+        vector<double>daily_hPath = getGarchPath(gParams,ppath);
+        vector<double>annual_hPath(daily_hPath.size(),0.0);
+        for (int i = 0; i < daily_hPath.size(); i++){
+            annual_hPath[i] = daily_hPath[i] * steps;
+        }
 
-    // string filename_garch = "./returns_with_garch.csv";
-    // writePathToCSV(ppath,annual_hPath,filename_garch);
-    // cout<<"GARCH Values written in file."<<endl;
+        // cout<<"v path length:"<<ppath.v.size()<<endl;
+        // cout<<"h path length:"<<annual_hPath.size()<<endl;
 
-    // VectorXd x0(5);
-    // uniform_real_distribution<> dist_mu(P.mu * (1-eps), P.mu * (1+eps));
-    // uniform_real_distribution<> dist_kappaP(P.kappaP * (1-eps), P.kappaP * (1+eps));
-    // uniform_real_distribution<> dist_thetaP(P.thetaP * (1-eps), P.thetaP * (1+eps));
-    // uniform_real_distribution<> dist_xi_mcmc(P.xi * (1-eps), P.xi * (1+eps));
-    // uniform_real_distribution<> dist_rho_mcmc(max(-0.95, P.rho - 0.4),min(-0.05, P.rho + 0.4));
+        string filename_garch = "./returns_with_garch.csv";
+        writePathToCSV(ppath,annual_hPath,filename_garch);
+        cout<<"GARCH Values written in file."<<endl;
 
-    // x0[0] = dist_mu(gen);
-    // x0[1] = dist_kappaP(gen);
-    // x0[2] = dist_thetaP(gen);
-    // x0[3] = dist_xi_mcmc(gen);
-    // x0[4] = dist_rho_mcmc(gen);
-    // double dt = 1/double(steps);
-    // int n_iters = 5000;
-    // int num_particles = 1500;
+        VectorXd x0(5);
+        
+            // 0 - mu
+            // 1 - sigma (vol-of-vol)
+            // 2 - kappa
+            // 3 - theta
+            // 4 - rho
+            // 5 - lambda
+            // 6 - Instantaneous volatility
+        uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
+        uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
+        uniform_real_distribution<> dist_thetaP(guess_P[3] * (1-eps), guess_P[3] * (1+eps));
+        uniform_real_distribution<> dist_xi_mcmc(guess_P[1] * (1-eps), guess_P[1] * (1+eps));
+        uniform_real_distribution<> dist_rho_mcmc(max(-0.95, guess_P[4] - 0.4),min(-0.05, guess_P[4] + 0.4));
 
-    // // mcmcOverLatent(HestonPParams& P, PPath ppath,vector<double>vProxy,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP)
-    // HestonPParams meanP,varP;
-    // vector<double>vProxy = annual_hPath;
-    // mcmcOverLatent(P,ppath,vProxy,x0,dt,meanP,varP,n_iters);
-    // cout<<"Mean Statistics:"<<meanP<<endl;
-    // cout<<"Variance Statistics:"<<varP<<endl;
+        x0[0] = dist_mu(gen);
+        x0[1] = dist_kappaP(gen);
+        x0[2] = dist_thetaP(gen);
+        x0[3] = dist_xi_mcmc(gen);
+        x0[4] = dist_rho_mcmc(gen);
+        double dt = 1/double(steps);
+        int n_iters = 5000;
+        int num_particles = 1500;
 
-    // PARAMS.meanP_garch_mcmc = meanP;
-    // PARAMS.varP_garch_mcmc = varP;
+        // mcmcOverLatent(HestonPParams& P, PPath ppath,vector<double>vProxy,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP)
 
+        HestonPParams P{
+            // [TODO] change to index
+            Data.get_S(i-prev_path_steps),   // S0
+            guess_P[6],    // v0 // we do not have a value for this, using guess
+            guess_P[0],    // mu
+            guess_P[2],     // kappaP
+            guess_P[3],    // thetaP
+            guess_P[1],     // xi
+            guess_P[4]     // rho
+        };
+        cout << P << endl;
+        HestonPParams meanP,varP;
+        vector<double>vProxy = annual_hPath;
+        // [TODO] - check, passing guess, is it fine?
+        mcmcOverLatent(P,ppath,vProxy,x0,dt,meanP,varP,n_iters);
+        cout<<"Mean Statistics:"<<meanP<<endl;
+        cout<<"Variance Statistics:"<<varP<<endl;
 
-    // //GARCH Calibration Ends
+        PARAMS.meanP_garch_mcmc = meanP;
+        PARAMS.varP_garch_mcmc = varP;
+        
+    }
+
+    garch_errors.close();
+    //GARCH Calibration Ends
 
     // //pmcmcOverLatent(HestonPParams& P, PPath& ppath,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP)
     // //PMCMC Calibration Starts

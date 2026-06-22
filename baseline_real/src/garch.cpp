@@ -80,6 +80,8 @@ double getNLL(GarchParams& params,PPath& ppath){
     double beta = params.beta;
     double h0 = omega/(1 - alpha - beta);
     double nll = 0.0;
+    cout << "HI ------------------------------\n";
+    cout << omega << endl;
     if(!(h0 > 1e-16) || !isfinite(h0)) throw invalid_argument("h0 is infinite.");
     
     double t_h = h0;
@@ -176,7 +178,8 @@ GarchParams garchPathFit(PPath& ppath){
    
     double init_mu = 0;
     double init_var = 0;
-    for(int i = 0; i < ppath.returns.size() - 1; i++){
+    // [TODO] - check if using 1 is fine
+    for(int i = 1; i < ppath.returns.size() - 1; i++){
         init_mu += ppath.returns[i];
         init_var += (ppath.returns[i] * ppath.returns[i]);
     }

@@ -210,7 +210,7 @@ int main() {
     phi_init.xi = guess_P[1];
     phi_init.rho = guess_P[4];
     // [TODO] - can finetune
-    int few = 5;
+    int few = 3;
     for(int t = 0 ; t < Data.get_time_steps()-few+1 ; t+=few){
         vector<CallGrid> few_surfaces;
         for(int i = t; i < few+t; i++){
@@ -254,6 +254,11 @@ int main() {
     // number of time stamps required
     // [TODO] - tune
     int prev_path_steps = 5;
+
+    double dt = 1/double(steps);
+    int n_iters = 5000;
+    int num_particles = 1500;
+
     for(int i = prev_path_steps ; i < no_of_timesteps ; i++){
         PPath ppath;
         ppath.returns.resize(prev_path_steps+1);
@@ -271,9 +276,9 @@ int main() {
         // cout<<"v path length:"<<ppath.v.size()<<endl;
         // cout<<"h path length:"<<annual_hPath.size()<<endl;
 
-        string filename_garch = "./returns_with_garch.csv";
-        writePathToCSV(ppath,annual_hPath,filename_garch);
-        cout<<"GARCH Values written in file."<<endl;
+        // string filename_garch = "./returns_with_garch.csv";
+        // writePathToCSV(ppath,annual_hPath,filename_garch);
+        // cout<<"GARCH Values written in file."<<endl;
 
         VectorXd x0(5);
         
@@ -295,9 +300,6 @@ int main() {
         x0[2] = dist_thetaP(gen);
         x0[3] = dist_xi_mcmc(gen);
         x0[4] = dist_rho_mcmc(gen);
-        double dt = 1/double(steps);
-        int n_iters = 5000;
-        int num_particles = 1500;
 
         // mcmcOverLatent(HestonPParams& P, PPath ppath,vector<double>vProxy,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP)
 
@@ -327,32 +329,78 @@ int main() {
     garch_errors.close();
     //GARCH Calibration Ends
 
-    // //pmcmcOverLatent(HestonPParams& P, PPath& ppath,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP)
-    // //PMCMC Calibration Starts
-    // HestonPParams meanP_pmcmc,varP_pmcmc;
-    // pmcmcOverLatent(P,ppath,x0,dt,meanP_pmcmc,varP_pmcmc,n_iters,num_particles);
-    // cout<<"Mean Statistics:"<<meanP_pmcmc<<endl;
-    // cout<<"Variance Statistics:"<<varP_pmcmc<<endl;
-    // filterValues finalFilter = ParticleFilter(meanP_pmcmc,P.v0,ppath,dt,num_particles);
+    //pmcmcOverLatent(HestonPParams& P, PPath& ppath,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP)
+    //PMCMC Calibration Starts
 
-    // int N_pmcmc = finalFilter.particles[0].size();
-    // int T_pmcmc = finalFilter.particles.size();
+    ofstream pmcmc_calibration_errors("pmcmc_errors.csv");
+    pmcmc_calibration_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
     
-    // int numSampledPaths = 200;
-    // vector<vector<double>> sampledPaths(numSampledPaths,vector<double>(T_pmcmc,0));
+    for(int i = prev_path_steps ; i < no_of_timesteps ; i++){
+        PPath ppath;
+        ppath.returns.resize(prev_path_steps+1);
+        for(int timestep = i-prev_path_steps ; timestep <= i ; timestep++){
+            ppath.returns[timestep] = Data.get_log_return(timestep);
+        }
+
+        VectorXd x0(5);
+        
+            // 0 - mu
+            // 1 - sigma (vol-of-vol)
+            // 2 - kappa
+            // 3 - theta
+            // 4 - rho
+            // 5 - lambda
+            // 6 - Instantaneous volatility
+        uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
+        uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
+        uniform_real_distribution<> dist_thetaP(guess_P[3] * (1-eps), guess_P[3] * (1+eps));
+        uniform_real_distribution<> dist_xi_mcmc(guess_P[1] * (1-eps), guess_P[1] * (1+eps));
+        uniform_real_distribution<> dist_rho_mcmc(max(-0.95, guess_P[4] - 0.4),min(-0.05, guess_P[4] + 0.4));
+
+        x0[0] = dist_mu(gen);
+        x0[1] = dist_kappaP(gen);
+        x0[2] = dist_thetaP(gen);
+        x0[3] = dist_xi_mcmc(gen);
+        x0[4] = dist_rho_mcmc(gen);
+
+        HestonPParams P{
+            // [TODO] change to index
+            Data.get_S(i-prev_path_steps),   // S0
+            guess_P[6],    // v0 // we do not have a value for this, using guess
+            guess_P[0],    // mu
+            guess_P[2],     // kappaP
+            guess_P[3],    // thetaP
+            guess_P[1],     // xi
+            guess_P[4]     // rho
+        };
+
+        HestonPParams meanP_pmcmc,varP_pmcmc;
+        pmcmcOverLatent(P,ppath,x0,dt,meanP_pmcmc,varP_pmcmc,n_iters,num_particles);
+        cout<<"Mean Statistics:"<<meanP_pmcmc<<endl;
+        cout<<"Variance Statistics:"<<varP_pmcmc<<endl;
+        filterValues finalFilter = ParticleFilter(meanP_pmcmc,P.v0,ppath,dt,num_particles);
+
+        int N_pmcmc = finalFilter.particles[0].size();
+        int T_pmcmc = finalFilter.particles.size();
+        
+        int numSampledPaths = 200;
+        vector<vector<double>> sampledPaths(numSampledPaths,vector<double>(T_pmcmc,0));
 
 
-    // for(int i = 0; i < numSampledPaths;i++){
-    //     vector<double>sample = ancestralSampling(finalFilter,gen);
-    //     sampledPaths[i] = sample;
-    // }
-    
-    // writeSampledPaths(sampledPaths);
-    // cout<<"Sampled Paths from PMCMC Written."<<endl; 
+        for(int i = 0; i < numSampledPaths;i++){
+            vector<double>sample = ancestralSampling(finalFilter,gen);
+            sampledPaths[i] = sample;
+        }
+        
+        writeSampledPaths(sampledPaths);
+        cout<<"Sampled Paths from PMCMC Written."<<endl; 
 
-    // PARAMS.meanP_pmcmc = meanP_pmcmc;
-    // PARAMS.varP_pmcmc = varP_pmcmc;
-    // //PMCMC Calibration Ends
+        PARAMS.meanP_pmcmc = meanP_pmcmc;
+        PARAMS.varP_pmcmc = varP_pmcmc;
+    }
+
+    pmcmc_calibration_errors.close();
+    //PMCMC Calibration Ends
     // cout<<"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"<<endl;
     // cout<<"Final Prints"<<endl;
     // cout<<P<<endl;

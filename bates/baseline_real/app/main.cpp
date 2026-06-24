@@ -1,0 +1,418 @@
+#include <qe/params.hpp>
+#include <qe/path.hpp>
+// #include <qe/pricing.hpp>
+#include <qe/surface.hpp>
+#include <qe/surfacefit.hpp>
+#include <qe/garch.hpp>
+#include <qe/latent_path_mcmc.hpp>
+#include <qe/particle_filters.hpp>
+
+#include <ql/quantlib.hpp>
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <random>
+#include <fstream>
+#include <iomanip>
+#include <string>
+
+#include "../src/getRealData.cpp"
+
+
+using namespace qe;
+using namespace QuantLib;
+using namespace std;
+using namespace Eigen;
+
+struct calParams{
+    HestonSurfaceFit SingleSurfaceParams;
+    HestonMultiSurfaceFit MultSurfaceParams;
+    HestonPParams meanP_garch_mcmc,varP_garch_mcmc;
+    HestonPParams meanP_pmcmc,varP_pmcmc;
+};
+
+
+void writePathToCSV(const PPath& ppath,const string& filename){
+    ofstream file(filename);
+    if(!file.is_open()){
+        cerr << "Error opening file: " << filename << std::endl;
+        return;
+    }
+
+    file << fixed << setprecision(8);
+    file << "log S,v,log Returns\n";
+    int N = ppath.returns.size();
+    for (int i = 1; i < N;i++){
+        // file<<ppath.logS[i]<<","<<ppath.v[i]<<","<<ppath.returns[i] << "\n";
+        file<<ppath.returns[i]<<"\n";
+        // if (i == 0){
+        //     file<<ppath.logS[i]<<","<<ppath.v[i]<<","<<0.0 << "\n";
+        // }
+        // else{
+        //     file<<ppath.logS[i]<<","<<ppath.v[i]<<","<<ppath.returns[i] << "\n";
+        // }
+    }
+    file.close();
+
+}
+
+void writePathToCSV(const PPath& ppath,const vector<double>hPath,const string& filename){
+    ofstream file(filename);
+    if(!file.is_open()){
+        cerr << "Error opening file: " << filename << std::endl;
+        return;
+    }
+
+    file << fixed << setprecision(8);
+    file << "log S,v,log Returns,garch h\n";
+    int N = ppath.logS.size();
+    for (int i = 0; i < N;i++){
+        file<<ppath.logS[i]<<","<<ppath.v[i]<<","<<ppath.returns[i] <<"," << hPath[i]<<"\n";
+        // if (i == 0){
+        //     file<<ppath.logS[i]<<","<<ppath.v[i]<<","<<0.0 << "\n";
+        // }
+        // else{
+        //     file<<ppath.logS[i]<<","<<ppath.v[i]<<","<<ppath.returns[i] << "\n";
+        // }
+    }
+    file.close();
+
+}
+
+int main() {
+
+    getRealData Data;
+    
+    // Date today(26, February, 2026);
+    // Settings::instance().evaluationDate() = today;
+
+    // [TODO] - check if this target is correct
+    Calendar cal = TARGET();
+
+    // HestonPParams P{
+    //     100.0,   // S0
+    //     0.04,    // v0
+    //     0.05,    // mu
+    //     1.5,     // kappaP
+    //     0.04,    // thetaP
+    //     0.3,     // xi
+    //     -0.7     // rho
+    // };
+
+    // VRPParams V{0.5};
+
+    // Rate r = 0.03;
+    // Rate q = 0.00;
+    DayCounter dc = Actual365Fixed();
+    // HestonQParams Q = toQ(P, V, r, q, dc);
+
+    // cout << P << endl;
+    // cout << Q << endl;
+
+
+    // [TODO] check if this is for 1 year, or steps of 
+    Size steps = 252;
+    // Size seed  = 42;
+
+    // PPath ppath = logReturns(P, steps, seed);
+    // string filename = "./logReturns.csv";
+    // writePathToCSV(ppath,filename);
+    // cout<<"Path Values written in file."<<endl;
+
+    // cout << ppath << endl;
+    // int SurfaceFrequency = 10;
+    // // build_surfaces_from_path(const HestonQParams& Q, const Date& today,
+    // //     const Calender& cal, const PPath& ppath,int SurfaceFrequency);
+    
+    // vector<CallGrid> surfaces = build_surfaces_from_path(Q,today,cal,ppath,SurfaceFrequency,r,q);
+    // cout << "Built " << surfaces.size() << " surfaces\n";
+    // print_Surfaces(surfaces);
+    // cout<<"-----------------------------------------------------------"<<endl;
+
+    calParams PARAMS;
+
+
+    // Single Surface Calibration Starts
+    // CallGrid CalibrationSurface = surfaces[10]; // or any surfaces[i]
+    // cout << "The grid chosen to be calibrated is:"<<endl;
+    // print_Callgrid(CalibrationSurface);
+
+    int repeat_cal = 10;
+    vector<HestonSurfaceFit>SurfaceFitsParams;
+    vector<HestonSurfaceFit>SurfaceFitGuesses;
+    
+    random_device rd;                // seed source
+    mt19937 gen(rd());               // Mersenne Twister RNG
+    Real eps = 0.5;
+
+    // uniform_real_distribution<> dist_v0(CalibrationSurface.v0 * (1-eps), CalibrationSurface.v0 * (1+eps));
+    // uniform_real_distribution<> dist_kappaQ(Q.kappaQ * (1-eps), Q.kappaQ * (1+eps));
+    // uniform_real_distribution<> dist_thetaQ(Q.thetaQ * (1-eps), Q.thetaQ * (1+eps));
+    // uniform_real_distribution<> dist_xi(Q.xi * (1-eps), Q.xi * (1+eps));
+    // uniform_real_distribution<> dist_rho(max(-0.95, Q.rho - 0.4),min(-0.05, Q.rho + 0.4));
+    
+    int best_idx = -1;
+    Real best_rmseIv = 10000;    
+
+    auto guess_P = Data.get_guess();
+
+    int no_of_timesteps = Data.get_time_steps();
+
+    ofstream single_state_calibration_errors("single_state_errors.csv");
+    single_state_calibration_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
+    for(int t = 0 ; t < no_of_timesteps ; t++){
+        CallGrid CalibrationSurface;
+        CalibrationSurface.C = Data.get_grid(t);
+        CalibrationSurface.S0 = Data.get_S(t);
+        CalibrationSurface.r = Data.get_r(t);
+        CalibrationSurface.q = Data.get_q(t);
+        CalibrationSurface.v0 = Data.get_guess()[6];
+        
+        // [TODO] check if eval data is todays date
+        CalibrationSurface.evalDate = Data.get_date(t);
+        
+        for(int i = 0;i<repeat_cal;i++){
+            HestonSurfaceFit InitialGuess;
+            InitialGuess.v0     = guess_P[6];
+            InitialGuess.kappaQ = guess_P[2] + guess_P[5];
+            InitialGuess.thetaQ = (double)(guess_P[2] * guess_P[3]) / (double)(guess_P[2] + guess_P[5]);
+            InitialGuess.xi     = guess_P[1];
+            InitialGuess.rho    = guess_P[4];
+            SurfaceFitGuesses.push_back(InitialGuess);
+            
+            HestonSurfaceFit SingleSurfaceParams = calibrateHestonQVolGrid(CalibrationSurface,InitialGuess,Data.get_date(t),dc,cal);
+            SurfaceFitsParams.push_back(SingleSurfaceParams);
+            //cout<<"v0 guess in single surface:"<<InitialGuess.v0 <<endl;
+            if (SingleSurfaceParams.rmseIv < best_rmseIv){
+                best_idx = i;
+                best_rmseIv = SingleSurfaceParams.rmseIv;
+            }
+        }
+
+        Data.get_penalty(t, SurfaceFitsParams[best_idx].v0, SurfaceFitsParams[best_idx].kappaQ, SurfaceFitsParams[best_idx].thetaQ, SurfaceFitsParams[best_idx].xi, SurfaceFitsParams[best_idx].rho, single_state_calibration_errors);
+    }
+    // cout << "Initial Guess" <<endl;
+    // cout<<SurfaceFitGuesses[best_idx]<<endl;
+    // cout << "Final Parameters" <<endl;
+    // cout<<SurfaceFitsParams[best_idx]<<endl;
+    // PARAMS.SingleSurfaceParams = SurfaceFitsParams[best_idx];
+    // cout << Q << endl;
+    single_state_calibration_errors.close();
+    // Single Surface Calibration Ends
+
+    // Multi Surface Calibration Starts
+    ofstream multi_state_calibration_errors("multi_state_errors.csv");
+    multi_state_calibration_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
+
+    HestonMultiSurfaceFit phi_init;
+    phi_init.kappaQ = guess_P[2] + guess_P[5];
+    phi_init.thetaQ = (double)(guess_P[2] * guess_P[3]) / (double)(guess_P[2] + guess_P[5]);
+    phi_init.xi = guess_P[1];
+    phi_init.rho = guess_P[4];
+    // [TODO] - can finetune
+    int few = 3;
+    for(int t = 0 ; t < Data.get_time_steps()-few+1 ; t+=few){
+        vector<CallGrid> few_surfaces;
+        for(int i = t; i < few+t; i++){
+            CallGrid this_CalibrationSurface;
+            this_CalibrationSurface.C = Data.get_grid(i);
+            this_CalibrationSurface.S0 = Data.get_S(i);
+            this_CalibrationSurface.r = Data.get_r(i);
+            this_CalibrationSurface.q = Data.get_q(i);
+            this_CalibrationSurface.v0 = Data.get_guess()[6];
+            
+            // [TODO] check if eval data is todays date
+            this_CalibrationSurface.evalDate = Data.get_date(i);
+            few_surfaces.push_back(this_CalibrationSurface);
+        }
+        HestonMultiSurfaceFit best_phi_init = MultiSurfaceRandomSearch(few_surfaces,dc,cal,phi_init,30);
+        HestonMultiSurfaceFit best_phi = nedlerMeadMultiSurface(few_surfaces,dc,cal,best_phi_init);
+        PARAMS.MultSurfaceParams = best_phi;
+
+        for(int i = t ; i < few+t ; i++){
+            Data.get_penalty(i, PARAMS.MultSurfaceParams.v0_by_surface[i-t], PARAMS.MultSurfaceParams.kappaQ, PARAMS.MultSurfaceParams.thetaQ, PARAMS.MultSurfaceParams.xi, PARAMS.MultSurfaceParams.rho, multi_state_calibration_errors);
+        }
+    }
+
+    // cout<<best_phi_init<<endl;
+    // cout<<best_phi<<endl;
+    // cout<<"Ground Truth v0:"<<endl;
+    // for(int i = 0; i < few_surfaces.size();i++){
+    //     cout<<few_surfaces[i].v0<<",  ";
+    // }
+
+    // cout<<"\n";
+    // cout << Q << endl;
+    // cout<<"\n";
+    multi_state_calibration_errors.close();
+    // Multi Surface Calibration Ends
+    
+    //GARCH Calibration Starts
+    ofstream garch_errors("garch_errors.csv");
+    garch_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
+
+    // number of time stamps required
+    // [TODO] - tune
+    int prev_path_steps = 5;
+
+    double dt = 1/double(steps);
+    int n_iters = 5000;
+    int num_particles = 1500;
+
+    for(int i = prev_path_steps ; i < no_of_timesteps ; i++){
+        PPath ppath;
+        ppath.returns.resize(prev_path_steps+1);
+        for(int timestep = i-prev_path_steps ; timestep <= i ; timestep++){
+            ppath.returns[timestep] = Data.get_log_return(timestep);
+        }
+        GarchParams gParams = garchPathFit(ppath);
+        // cout<<gParams<<endl;
+        vector<double>daily_hPath = getGarchPath(gParams,ppath);
+        vector<double>annual_hPath(daily_hPath.size(),0.0);
+        for (int i = 0; i < daily_hPath.size(); i++){
+            annual_hPath[i] = daily_hPath[i] * steps;
+        }
+
+        // cout<<"v path length:"<<ppath.v.size()<<endl;
+        // cout<<"h path length:"<<annual_hPath.size()<<endl;
+
+        // string filename_garch = "./returns_with_garch.csv";
+        // writePathToCSV(ppath,annual_hPath,filename_garch);
+        // cout<<"GARCH Values written in file."<<endl;
+
+        VectorXd x0(5);
+        
+            // 0 - mu
+            // 1 - sigma (vol-of-vol)
+            // 2 - kappa
+            // 3 - theta
+            // 4 - rho
+            // 5 - lambda
+            // 6 - Instantaneous volatility
+        uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
+        uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
+        uniform_real_distribution<> dist_thetaP(guess_P[3] * (1-eps), guess_P[3] * (1+eps));
+        uniform_real_distribution<> dist_xi_mcmc(guess_P[1] * (1-eps), guess_P[1] * (1+eps));
+        uniform_real_distribution<> dist_rho_mcmc(max(-0.95, guess_P[4] - 0.4),min(-0.05, guess_P[4] + 0.4));
+
+        x0[0] = dist_mu(gen);
+        x0[1] = dist_kappaP(gen);
+        x0[2] = dist_thetaP(gen);
+        x0[3] = dist_xi_mcmc(gen);
+        x0[4] = dist_rho_mcmc(gen);
+
+        // mcmcOverLatent(HestonPParams& P, PPath ppath,vector<double>vProxy,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP)
+
+        HestonPParams P{
+            // [TODO] change to index
+            Data.get_S(i-prev_path_steps),   // S0
+            guess_P[6],    // v0 // we do not have a value for this, using guess
+            guess_P[0],    // mu
+            guess_P[2],     // kappaP
+            guess_P[3],    // thetaP
+            guess_P[1],     // xi
+            guess_P[4]     // rho
+        };
+        cout << P << endl;
+        HestonPParams meanP,varP;
+        vector<double>vProxy = annual_hPath;
+        // [TODO] - check, passing guess, is it fine?
+        mcmcOverLatent(P,ppath,vProxy,x0,dt,meanP,varP,n_iters);
+        cout<<"Mean Statistics:"<<meanP<<endl;
+        cout<<"Variance Statistics:"<<varP<<endl;
+
+        PARAMS.meanP_garch_mcmc = meanP;
+        PARAMS.varP_garch_mcmc = varP;
+        
+    }
+
+    garch_errors.close();
+    //GARCH Calibration Ends
+
+    //pmcmcOverLatent(HestonPParams& P, PPath& ppath,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP)
+    //PMCMC Calibration Starts
+
+    ofstream pmcmc_calibration_errors("pmcmc_errors.csv");
+    pmcmc_calibration_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
+    
+    for(int i = prev_path_steps ; i < no_of_timesteps ; i++){
+        PPath ppath;
+        ppath.returns.resize(prev_path_steps+1);
+        for(int timestep = i-prev_path_steps ; timestep <= i ; timestep++){
+            ppath.returns[timestep] = Data.get_log_return(timestep);
+        }
+
+        VectorXd x0(5);
+        
+            // 0 - mu
+            // 1 - sigma (vol-of-vol)
+            // 2 - kappa
+            // 3 - theta
+            // 4 - rho
+            // 5 - lambda
+            // 6 - Instantaneous volatility
+        uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
+        uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
+        uniform_real_distribution<> dist_thetaP(guess_P[3] * (1-eps), guess_P[3] * (1+eps));
+        uniform_real_distribution<> dist_xi_mcmc(guess_P[1] * (1-eps), guess_P[1] * (1+eps));
+        uniform_real_distribution<> dist_rho_mcmc(max(-0.95, guess_P[4] - 0.4),min(-0.05, guess_P[4] + 0.4));
+
+        x0[0] = dist_mu(gen);
+        x0[1] = dist_kappaP(gen);
+        x0[2] = dist_thetaP(gen);
+        x0[3] = dist_xi_mcmc(gen);
+        x0[4] = dist_rho_mcmc(gen);
+
+        HestonPParams P{
+            // [TODO] change to index
+            Data.get_S(i-prev_path_steps),   // S0
+            guess_P[6],    // v0 // we do not have a value for this, using guess
+            guess_P[0],    // mu
+            guess_P[2],     // kappaP
+            guess_P[3],    // thetaP
+            guess_P[1],     // xi
+            guess_P[4]     // rho
+        };
+
+        HestonPParams meanP_pmcmc,varP_pmcmc;
+        pmcmcOverLatent(P,ppath,x0,dt,meanP_pmcmc,varP_pmcmc,n_iters,num_particles);
+        cout<<"Mean Statistics:"<<meanP_pmcmc<<endl;
+        cout<<"Variance Statistics:"<<varP_pmcmc<<endl;
+        filterValues finalFilter = ParticleFilter(meanP_pmcmc,P.v0,ppath,dt,num_particles);
+
+        int N_pmcmc = finalFilter.particles[0].size();
+        int T_pmcmc = finalFilter.particles.size();
+        
+        int numSampledPaths = 200;
+        vector<vector<double>> sampledPaths(numSampledPaths,vector<double>(T_pmcmc,0));
+
+
+        for(int i = 0; i < numSampledPaths;i++){
+            vector<double>sample = ancestralSampling(finalFilter,gen);
+            sampledPaths[i] = sample;
+        }
+        
+        writeSampledPaths(sampledPaths);
+        cout<<"Sampled Paths from PMCMC Written."<<endl; 
+
+        PARAMS.meanP_pmcmc = meanP_pmcmc;
+        PARAMS.varP_pmcmc = varP_pmcmc;
+    }
+
+    pmcmc_calibration_errors.close();
+    //PMCMC Calibration Ends
+    // cout<<"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"<<endl;
+    // cout<<"Final Prints"<<endl;
+    // cout<<P<<endl;
+    // cout<<Q<<endl;
+    // cout<<PARAMS.SingleSurfaceParams<<endl;
+    // cout<<PARAMS.MultSurfaceParams<<endl;
+    // cout<<PARAMS.meanP_garch_mcmc<<endl;
+    // cout<<PARAMS.varP_garch_mcmc<<endl;
+    // cout<<PARAMS.meanP_pmcmc<<endl;
+    // cout<<PARAMS.varP_pmcmc<<endl;
+    // cout<<"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"<<endl;
+
+    return 0;
+}
+

@@ -28,10 +28,13 @@ private:
     vector<double> unconstrainedParams;
 
     
-    vector<double> P_to_Q(const vector<double> &particle) const {
+    // [TODO] - check if these conversions are correct
+    vector<double> P_to_Q(const vector<double> &particle){
         vector<double> Q_space_params = particle;
         Q_space_params[2] = particle[2] + particle[5];
         Q_space_params[3] = (particle[2] * particle[3]) / (particle[2] + particle[5] + 1e-8);
+        Q_space_params[7] = particle[7] * exp(particle[10] * particle[8] + 0.5 * particle[10] * particle[10] * particle[9] * particle[9]);
+        Q_space_params[8] = particle[8] + particle[10] * particle[9] * particle[9];
         return Q_space_params;
     }
 
@@ -45,6 +48,10 @@ private:
         unconstrainedParams[4] = atanh(params[4]);
         unconstrainedParams[5] = params[5];
         unconstrainedParams[6] = log(params[6]);
+        unconstrainedParams[7] = log(params[7]);
+        unconstrainedParams[8] = params[8];
+        unconstrainedParams[9] = log(params[9]);
+        unconstrainedParams[10] = params[10];
 
         return unconstrainedParams;
     }
@@ -59,14 +66,24 @@ private:
         params[4] = tanh(unconstrained_params[4]);
         params[5] = unconstrained_params[5];
         params[6] = exp(unconstrained_params[6]);
+        params[7] = exp(unconstrained_params[7]);
+        params[8] = unconstrained_params[8];
+        params[9] = exp(unconstrained_params[9]);
+        params[10] = unconstrained_params[10];
 
         return params;
     }
 
+    // [TODO] - check if adding upper bounds is better
     bool isValidQ(const vector<double> &qParams) const{
         // ensure that the new parameters in Q space are in limits
-        if(qParams[2] <= 0) return false;
-        if(qParams[3] <= 0) return false;
+        if (qParams[1] <= 1e-8) return false;
+        if (qParams[2] <= 1e-8) return false;
+        if (qParams[3] <= 1e-8) return false;
+        if (qParams[4] <= -0.999 || qParams[4] >= 0.999) return false;
+        if (qParams[6] <= 1e-10) return false;
+        if (qParams[7] < 0.0) return false;
+        if (qParams[9] <= 1e-8) return false;
 
         return true;
     }
@@ -76,6 +93,7 @@ private:
         vector<double> qParams = P_to_Q(make_original(unconstrained_params));
 
         if(!isValidQ(qParams)){
+            cout << "---- I AM INVALID -----\n";
             return 1e8;
         }
 
@@ -84,7 +102,7 @@ private:
 
         for(int i = 0 ; i < grid_.size() ; i++){
             double true_value = grid_[i][2];
-            double predicted_value = qe::hestonCallPrice(
+            double predicted_value = qe::batesCallPrice(
                 spot_,
                 grid_[i][0],
                 grid_[i][1],
@@ -95,6 +113,9 @@ private:
                 qParams[3],
                 qParams[1],
                 qParams[4],
+                qParams[7],
+                qParams[8],
+                qParams[9],
                 today_
             );
 
@@ -160,6 +181,10 @@ public:
         // 4 - rho                      -> tanh for [-1,1]
         // 5 - lambda
         // 6 - Instantaneous volatility -> exp for > 0
+        // 7 - Jump Intensity           -> exp for > 0
+        // 8 - Jump Mean            
+        // 9 - Jump Volatility          -> exp for > 0
+        // 10 - eta                     
 
         // First let us ensure that the guesses are valid
         guesses[1] = max(guesses[1], 1e-8);
@@ -167,6 +192,8 @@ public:
         guesses[3] = max(guesses[3], 1e-8);
         guesses[4] = clamp(guesses[4], -0.999, 0.999);
         guesses[6] = max(guesses[6], 1e-8);
+        guesses[7] = max(guesses[7], 1e-8);
+        guesses[9] = max(guesses[9], 1e-8);
 
         unconstrainedParams = make_unconstrained(guesses);
 
@@ -191,10 +218,13 @@ class surfaceCalibrationLaplacian {
         vector<double> prior_std_;
         double sigma_C_;
 
-        vector<double> P_to_Q(const vector<double> &particle) const {
+        // [TODO] - check if these conversions are correct
+        vector<double> P_to_Q(const vector<double> &particle){
             vector<double> Q_space_params = particle;
             Q_space_params[2] = particle[2] + particle[5];
             Q_space_params[3] = (particle[2] * particle[3]) / (particle[2] + particle[5] + 1e-8);
+            Q_space_params[7] = particle[7] * exp(particle[10] * particle[8] + 0.5 * particle[10] * particle[10] * particle[9] * particle[9]);
+            Q_space_params[8] = particle[8] + particle[10] * particle[9] * particle[9];
             return Q_space_params;
         }
     
@@ -208,13 +238,17 @@ class surfaceCalibrationLaplacian {
             unconstrainedParams[4] = atanh(params[4]);
             unconstrainedParams[5] = params[5];
             unconstrainedParams[6] = log(params[6]);
-    
+            unconstrainedParams[7] = log(params[7]);
+            unconstrainedParams[8] = params[8];
+            unconstrainedParams[9] = log(params[9]);
+            unconstrainedParams[10] = params[10];
+
             return unconstrainedParams;
         }
     
         vector<double> make_original(const vector<double> &unconstrained_params) const {
             vector<double> params(unconstrained_params.size());
-    
+
             params[0] = unconstrained_params[0];
             params[1] = exp(unconstrained_params[1]);
             params[2] = exp(unconstrained_params[2]);
@@ -222,10 +256,15 @@ class surfaceCalibrationLaplacian {
             params[4] = tanh(unconstrained_params[4]);
             params[5] = unconstrained_params[5];
             params[6] = exp(unconstrained_params[6]);
-    
+            params[7] = exp(unconstrained_params[7]);
+            params[8] = unconstrained_params[8];
+            params[9] = exp(unconstrained_params[9]);
+            params[10] = unconstrained_params[10];
+
             return params;
         }
 
+        // [TODO] - Arka
         Eigen::MatrixXd make_original_covariance(Eigen::MatrixXd covariance_u,const vector<double> &unconstrained_params) const{
             Eigen::MatrixXd G = Eigen::MatrixXd::Zero(7, 7);
             G(0,0) = 1.0;
@@ -244,11 +283,17 @@ class surfaceCalibrationLaplacian {
             return covariance_p;
         }
     
+        // [TODO] - check if adding upper bounds is better
         bool isValidQ(const vector<double> &qParams) const{
             // ensure that the new parameters in Q space are in limits
-            if(qParams[2] <= 0) return false;
-            if(qParams[3] <= 0) return false;
-    
+            if (qParams[1] <= 1e-8) return false;
+            if (qParams[2] <= 1e-8) return false;
+            if (qParams[3] <= 1e-8) return false;
+            if (qParams[4] <= -0.999 || qParams[4] >= 0.999) return false;
+            if (qParams[6] <= 1e-10) return false;
+            if (qParams[7] < 0.0) return false;
+            if (qParams[9] <= 1e-8) return false;
+
             return true;
         }
 
@@ -268,6 +313,7 @@ class surfaceCalibrationLaplacian {
 
     
             if(!isValidQ(qParams)){
+                cout << "I am INVIALID qParams line 316\n";
                 return 1e8;
             }
     
@@ -276,7 +322,7 @@ class surfaceCalibrationLaplacian {
     
             for(int i = 0 ; i < grid_.size() ; i++){
                 double true_value = grid_[i][2];
-                double predicted_value = qe::hestonCallPrice(
+                double predicted_value = qe::batesCallPrice(
                     spot_,
                     grid_[i][0],
                     grid_[i][1],
@@ -287,6 +333,9 @@ class surfaceCalibrationLaplacian {
                     qParams[3],
                     qParams[1],
                     qParams[4],
+                    qParams[7],
+                    qParams[8],
+                    qParams[9],
                     today_
                 );
     
@@ -311,7 +360,7 @@ class surfaceCalibrationLaplacian {
             for(int i = 0; i < grid_.size(); i++){
                 double true_value = grid_[i][2];
         
-                double predicted_value = qe::hestonCallPrice(
+                double predicted_value = qe::batesCallPrice(
                     spot_,
                     grid_[i][0],
                     grid_[i][1],
@@ -322,6 +371,9 @@ class surfaceCalibrationLaplacian {
                     qParams[3],
                     qParams[1],
                     qParams[4],
+                    qParams[7],
+                    qParams[8],
+                    qParams[9],
                     today_
                 );
                 residuals.push_back((true_value - predicted_value) / sigma_C_);
@@ -366,7 +418,8 @@ class surfaceCalibrationLaplacian {
             QuantLib::Problem problem(cost, constraint, x0);
     
             QuantLib::Simplex solver(0.15);
-            QuantLib::EndCriteria ec(100, 20, 1e-8, 1e-8, 1e-8);
+            // [TODO] increase for bates
+            QuantLib::EndCriteria ec(2000, 200, 1e-6, 1e-6, 1e-6);
             solver.minimize(problem, ec);
     
             QuantLib::Array xStar = problem.currentValue();
@@ -467,6 +520,7 @@ class surfaceCalibrationLaplacian {
     
         // I am assuming initial guesses are good - not violating constraints
         surfaceCalibrationLaplacian(vector<vector<double>> grid, vector<double> guesses, QuantLib::Date today, double spot, double r, double q){
+            // [TODO] - note it is always good to bound them because they usually never explode
             // Note that we pass the guesses in P-space
             // This means that we have (index - name)
             // 0 - mu                   
@@ -476,6 +530,10 @@ class surfaceCalibrationLaplacian {
             // 4 - rho                      -> tanh for [-1,1]
             // 5 - lambda
             // 6 - Instantaneous volatility -> exp for > 0
+            // 7 - Jump Intensity           -> exp for > 0
+            // 8 - Jump Mean            
+            // 9 - Jump Volatility          -> exp for > 0
+            // 10 - eta                     
     
             // First let us ensure that the guesses are valid
             guesses[1] = max(guesses[1], 1e-8);
@@ -483,7 +541,10 @@ class surfaceCalibrationLaplacian {
             guesses[3] = max(guesses[3], 1e-8);
             guesses[4] = clamp(guesses[4], -0.999, 0.999);
             guesses[6] = max(guesses[6], 1e-8);
+            guesses[7] = max(guesses[7], 1e-8);
+            guesses[9] = max(guesses[9], 1e-8);
             prior_mean_ = guesses;
+            // [TODO] - check if these are correct
             prior_std_ = {
                 0.20,   // mu
                 0.30,   // xi
@@ -492,6 +553,11 @@ class surfaceCalibrationLaplacian {
                 0.30,   // rho
                 0.50,   // lambda
                 0.05    // v0
+
+                0.30,   // jump intensity
+                0.05,   // jump mean
+                0.10,   // jump volatility
+                1.00    // eta
             };
             sigma_C_ = 1.0;
 

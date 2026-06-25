@@ -50,11 +50,11 @@ private:
     // lambda assumed constant
 
     // Each particle stores 
-    // 1. Heston Parameters
-    // 2. Lambda (P->Q) mapping
+    // 1. Bates Parameters
+    // 2. Lambda and eta (P->Q) mapping
     // 3. Instantaneous Volatility
 
-    // Thus each particle has size 5+1+1 = 7
+    // Thus each particle has size 8+2+1 = 11
 
     // 0 - mu
     // 1 - sigma (vol-of-vol)
@@ -63,6 +63,10 @@ private:
     // 4 - rho
     // 5 - lambda
     // 6 - Instantaneous volatility
+    // 7 - Jump Intensity
+    // 8 - Jump Mean
+    // 9 - Jump Volatility
+    // 10 - eta
     map<int, string> index_to_name;
 
     vector<vector<double>> particles;
@@ -76,10 +80,13 @@ private:
     // Weights for each of the particle
     vector<double> weights;
 
+    // [TODO] - check if these conversions are correct
     vector<double> P_to_Q(const vector<double> &particle){
         vector<double> Q_space_params = particle;
         Q_space_params[2] = particle[2] + particle[5];
         Q_space_params[3] = (particle[2] * particle[3]) / (particle[2] + particle[5] + 1e-8);
+        Q_space_params[7] = particle[7] * exp(particle[10] * particle[8] + 0.5 * particle[10] * particle[10] * particle[9] * particle[9]);
+        Q_space_params[8] = particle[8] + particle[10] * particle[9] * particle[9];
         return Q_space_params;
     }
 
@@ -88,7 +95,11 @@ private:
 
         thread_local mt19937 local_rng{random_device{}()};
         normal_distribution<double> distribution(0.0, 1.0);
-        for(int i = 0 ; i < 5 ; i++){
+        for(int i = 0 ; i <= 10 ; i++){
+            // [TODO] - check if we need to do OU for volatility
+            // [TOTO] - check if reqriued for jump parameters
+            // skip the volatility
+            if(i==6) continue;
             double dW = distribution(local_rng) * sqrt(dt);
             particle[i] += ou_sigma_map[i] * dW;
         }
@@ -101,7 +112,11 @@ private:
         // ensure rho is within bounds
         particle[4] = clamp(particle[4], -0.999, 0.999);
 
-        // volatility moves via heston discretization
+        // jump intensity, jump volatility more than 0
+        particle[7] = max(particle[7], 1e-8);
+        particle[9] = max(particle[9], 1e-8)
+
+        // volatility moves via bates discretization
         const double z = distribution(local_rng);
         const double rho = particle[4];
 
@@ -111,7 +126,22 @@ private:
         const double kappaP = particle[2];
         const double thetaP = particle[3];
 
-        const double eps1 = (log_return - (mu - 0.5 * v_prev) * dt) / sqrt(v_prev * dt);
+        // we need to draw from the random poisson process
+        poisson_distribution<int> pois(particle[7] * dt);
+        int nJumps = pois(local_rng);
+
+        // we also need jumps
+        normal_distribution<double> jumpDist(particle[8], particle[9]);
+        double jumpSum = 0.0;
+        for(int k = 0 ; k < nJumps ; j++){
+            jumpSum += jumpDist(local_rng);
+        }
+
+        double EJ = exp(particle[8] + 0.5 * particle[9] * particle[9]);
+        double jumpCompensator = particle[7] * (EJ-1.0);
+
+        // [TODO] - check if this is correct
+        const double eps1 = (log_return - jumpSum - (mu - 0.5 * v_prev - jumpCompensator) * dt) / sqrt(v_prev * dt);
         const double eps2 = rho * eps1 + sqrt(max(1.0 - rho * rho, 1e-12)) * z;
 
         // Variance Euler step under 
@@ -157,7 +187,7 @@ private:
         // booking for ancestral sampling
         vector<int> idx(N, -1);
 
-        vector<vector<double>> newParticles(N, vector<double> (7, 0.0));
+        vector<vector<double>> newParticles(N, vector<double> (11, 0.0));
         vector<double> cdf(N, 0.0);
         cdf[0] = weights[0];
         for (int i = 1; i < N; i++) cdf[i] = cdf[i - 1] + weights[i];
@@ -181,29 +211,55 @@ private:
         return idx;
     }
 
+    // [TODO] - check if correct
+    // [TODO] - can we approximate it as heston only
     // function which computes normal returns given particle state
     double likelihood_log_return_given_v(const vector<double>& particle, double observed_log_return){
 
         const double mu = particle[0];
         const double v_prev = max(1e-8, particle[6]);
 
-        const double mean = (mu - 0.5 * v_prev) * dt;
-        const double var  = max(v_prev * dt, 1e-12);
+        const double lambdaP = max(1e-8, particle[7]);
+        const double jumpMeanP = particle[8];
+        const double jumpVolP = max(1e-8, particle[9]);
 
-        const double z = observed_log_return - mean;
-        const double logLik = -0.5 * (log(2.0 * M_PI * var) + (z * z) / var);
+        const double kappaJ = exp(jumpMeanP + 0.5 * jumpVolP * jumpVolP) - 1.0;
 
-        return logLik;
+        const double baseMean = (mu - 0.5 * v_prev - lambdaP * kappaJ) * dt;
+        const double baseVar  = max(v_prev * dt, 1e-12);
+
+        double likelihood = 0.0;
+        // [TODO] - tune
+        const int N_MAX = 10;
+        for(int n = 0 ; n <= N_MAX ; n++){
+            const double poissonWeight = exp(-lambdaP * dt) * pow(lambdaP * dt, n) / tgamma(n + 1.0);
+
+            const double mean_n = baseMean + n * jumpMeanP;
+
+            const double var_n = max(baseVar + n * jumpVolP * jumpVolP, 1e-12);
+
+            const double z = observed_log_return - mean_n;
+
+            const double normalPdf = exp(-0.5 * (log(2.0 * M_PI * var_n) + (z * z) / var_n));
+
+            likelihood += poissonWeight * normalPdf;
+        }
+
+        // const double z = observed_log_return - mean;
+        // const double logLik = -0.5 * (log(2.0 * M_PI * var) + (z * z) / var);
+
+        // return logLik;
+        return log(max(likelihood, 1e-300));
     }
 
     // [TODO] - shall we remove the randomness?
     vector<double> create_guess(){
-        vector<double> guess(7);
+        vector<double> guess(11);
 
         vector<double> guess_params = data.get_guess();
 
         thread_local mt19937 local_rng{random_device{}()};
-        for(int i = 0 ; i < 7 ; i++){
+        for(int i = 0 ; i < 11 ; i++){
             uniform_real_distribution<double> distr(0.5 * guess_params[i], 1.5 * guess_params[i]);
             guess[i] = distr(local_rng);
         }
@@ -237,6 +293,8 @@ private:
         surfaceCalibrationLaplacian::MAP map_result =
             this_particle.getCalibration();
     
+        // [TODO] - Arka
+        // please ensure that sizes are 11 everywhere to accomodate the new parameters
         Eigen::VectorXd mu(7);
         for(int i = 0; i < 7; i++) {
             mu(i) = map_result.result[i];
@@ -273,9 +331,12 @@ private:
             particles[p][3] = max(particles[p][3], 1e-8);
             particles[p][4] = clamp(particles[p][4], -0.999, 0.999);
             particles[p][6] = max(particles[p][6], 1e-8);
+            particles[p][7] = max(particles[p][7], 1e-8);
+            particles[p][9] = max(particles[p][9], 1e-8);
         }
     }
 
+    // [TODO] - Arka
     void initialization_lms_one_particle(int particle_index,int time_index){
         thread_local mt19937 local_rng{random_device{}()};
         normal_distribution<double> normal(0.0, 1.0);
@@ -324,16 +385,16 @@ private:
     // [TODO] - I am doing average of variance just like others, is it fine
     vector<pair<double,double>> compute_mean_and_variance(){
         // first is mean, second is variance
-        vector<pair<double, double>> mean_variance(7);
+        vector<pair<double, double>> mean_variance(11);
 
         for(int i = 0 ; i < N ; i++){
-            for(int parameter = 0 ; parameter < 7 ; parameter++){
+            for(int parameter = 0 ; parameter < 11 ; parameter++){
                 mean_variance[parameter].first += weights[i] * particles[i][parameter];
                 mean_variance[parameter].second += weights[i] * particles[i][parameter] * particles[i][parameter];
             }
         }
 
-        for(int parameter = 0 ; parameter < 7 ; parameter++){
+        for(int parameter = 0 ; parameter < 11 ; parameter++){
             mean_variance[parameter].second -= (mean_variance[parameter].first * mean_variance[parameter].first);
         }
 
@@ -372,7 +433,7 @@ public:
         number_of_samples = n_samples;
         data = passed_data;
         
-        particles.assign(N, vector<double>(7, 0));       // ensure that size of params is N
+        particles.assign(N, vector<double>(11, 0));       // ensure that size of params is N
         
         // kappa and xi can take larger diffusion than theta.
         ou_sigma_map[0] = 0.12;   // mu
@@ -381,6 +442,10 @@ public:
         ou_sigma_map[3] = 0.015;  // theta (long-run variance level) - theta needs much smaller noise in level-space (it is usually around ~0.01 to 0.10).
         ou_sigma_map[4] = 0.08;   // rho - rho should be moderate to avoid constant boundary clipping.
         ou_sigma_map[5] = 0.18;   // lambda
+        ou_sigma_map[7]  = 0.15;   // jump intensity
+        ou_sigma_map[8]  = 0.025;  // jump mean
+        ou_sigma_map[9]  = 0.06;   // jump volatility
+        ou_sigma_map[10] = 0.20;   // eta
 
         index_to_name[0] = "mu";
         index_to_name[1] = "sigma";
@@ -389,6 +454,10 @@ public:
         index_to_name[4] = "rho";
         index_to_name[5] = "lambda";
         index_to_name[6] = "volatility";
+        index_to_name[7] = "Jump Intensity";
+        index_to_name[8] = "Jump Mean";
+        index_to_name[9] = "Jump Volatility";
+        index_to_name[10] = "eta";
 
         time_steps = data.get_time_steps();
         
@@ -549,7 +618,7 @@ public:
 
             vector<pair<double, double>> mean_variance = compute_mean_and_variance();
             statistical_file << "Time " << t << '\n';
-            for(int i = 0 ; i < 7 ; i++){
+            for(int i = 0 ; i < 11 ; i++){
                 statistical_file << index_to_name[i] << ": mean=" << mean_variance[i].first << ", variance=" << mean_variance[i].second << '\n';
                 statistical_csv << mean_variance[i].first << ',';
             }
@@ -558,7 +627,7 @@ public:
 
             for(int i = 0 ; i < N ; i++){
                 log_file << "Particle " << i << ":";
-                for(int j = 0 ; j < 7 ; j++){
+                for(int j = 0 ; j < 11 ; j++){
                     log_file << particles[i][j] << ' ';
                 } 
                 log_file << " - w = " << weights[i];
@@ -573,6 +642,9 @@ public:
                 (mean_variance[2].first * mean_variance[3].first)/(mean_variance[2].first + mean_variance[5].first + 1e-8), 
                 mean_variance[1].first, 
                 mean_variance[4].first, 
+                mean_variance[7] * exp(mean_variance[10] * mean_variance[8] + 0.5 * mean_variance[10] * mean_variance[10] * mean_variance[9] * mean_variance[9]),
+                mean_variance[8] + mean_variance[10] * mean_variance[9] * mean_variance[9],
+                mean_variance[9],
                 error_file
             );
 
@@ -616,7 +688,7 @@ public:
         for(auto [u, v] : final_mean_and_variance){
             ctr++;
             final_mean << u;
-            if(ctr != 7){
+            if(ctr != 11){
                 final_mean << ',';
             }
         }
@@ -626,7 +698,7 @@ public:
         for(auto [u, v] : final_mean_and_variance){
             ctr++;
             final_mean << v;
-            if(ctr != 6){
+            if(ctr != 11){
                 final_mean << ',';
             }
         }

@@ -4,9 +4,11 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #include <Eigen/Core>
 #include <iomanip>
 #include <limits>
+#include <stdexcept>
 #include <Eigen/Cholesky>
 #include "qe/params.hpp"
 #include "qe/path.hpp"
@@ -21,7 +23,12 @@ using namespace Eigen;
 namespace qe {
 double getPathLikelihood(const HestonPParams& P, const PPath& ppath,const vector<double>& vProxy,double dt){
     int n = ppath.returns.size();
+    if (n == 0) throw invalid_argument("Path likelihood needs at least one return.");
     if (ppath.returns[n - 1] == 0 ) n = n - 1;
+    if (n <= 0) throw invalid_argument("Path likelihood needs at least one nonzero return.");
+    if (static_cast<int>(vProxy.size()) < n + 1) {
+        throw invalid_argument("Variance proxy path must have at least returns.size() + 1 values.");
+    }
     //cout<<"Size of n:"<<n<<endl;
     vector<double> vDiff(vProxy.size() - 1,0);
     for(int i = 0; i < vProxy.size() - 1; i++){
@@ -69,7 +76,7 @@ HestonPParams xToParamsMCMC(VectorXd& x){
 }
 
 VectorXd ParamstoxMCMC(HestonPParams& P){
-    VectorXd x;
+    VectorXd x(5);
     x[0] = log(P.mu);
     x[1] = log(P.kappaP);
     x[2] = log(P.thetaP);
@@ -124,9 +131,9 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const vector<double>& v
     const int d = x0.size();
     mt19937 rng(123);
     double vbar = 0.0;
-    for (int i = 0; i < ppath.v.size(); i++) vbar += vProxy[i];
-
-    vbar = vbar/ppath.v.size();
+    if (vProxy.empty()) throw invalid_argument("Variance proxy path cannot be empty.");
+    for (double v : vProxy) vbar += v;
+    vbar = vbar / static_cast<double>(vProxy.size());
     double s = 2.0/sqrt((double)d);
     MatrixXd C = MatrixXd::Identity(d,d);
     VectorXd x = x0;
@@ -174,12 +181,13 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const vector<double>& v
 }
 
 
-vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int n_iters, double v0_actual,double dt,int num_particles,int adapt_start = 1000, int adapt_every = 50,double jitter = 1e-5){
+vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int n_iters, double v0_actual,double vbar_prior,double dt,int num_particles,int adapt_start = 1000, int adapt_every = 50,double jitter = 1e-5){
     const int d = x0.size();
     mt19937 rng(123);
-    double vbar = 0.0;
-    for (int i = 0; i < ppath.v.size(); i++) vbar += ppath.v[i];
-    vbar = vbar/ppath.v.size();
+    if (!(vbar_prior > 0.0) || !isfinite(vbar_prior)) {
+        throw invalid_argument("PMCMC variance prior anchor must be positive and finite.");
+    }
+    double vbar = vbar_prior;
     double s = 2.0/sqrt((double)d);
     MatrixXd C = MatrixXd::Identity(d,d);
     VectorXd x = x0;
@@ -230,6 +238,10 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int
 
 
 void chainStatistics(vector<VectorXd>& chain,int burn_in,HestonPParams& meanP,HestonPParams& varP){
+    if (chain.empty()) throw invalid_argument("Cannot summarize an empty MCMC chain.");
+    burn_in = min<int>(burn_in, static_cast<int>(chain.size()) - 1);
+    const int sample_count = static_cast<int>(chain.size()) - burn_in;
+
     double mu_mean = 0.0;
     double kappaP_mean = 0.0;
     double thetaP_mean = 0.0;
@@ -260,24 +272,28 @@ void chainStatistics(vector<VectorXd>& chain,int burn_in,HestonPParams& meanP,He
         rho_mean += tmp.rho;
         rho_var += (tmp.rho * tmp.rho);        
     }
-    mu_mean = mu_mean/(chain.size() - burn_in);
-    kappaP_mean = kappaP_mean/(chain.size() - burn_in);
-    thetaP_mean = thetaP_mean/(chain.size() - burn_in);
-    xi_mean = xi_mean/(chain.size() - burn_in);
-    rho_mean = rho_mean/(chain.size() - burn_in);
+    mu_mean = mu_mean/sample_count;
+    kappaP_mean = kappaP_mean/sample_count;
+    thetaP_mean = thetaP_mean/sample_count;
+    xi_mean = xi_mean/sample_count;
+    rho_mean = rho_mean/sample_count;
     
-    mu_var = mu_var/(chain.size() - burn_in) - mu_mean * mu_mean;
-    kappaP_var = kappaP_var/(chain.size() - burn_in) - kappaP_mean * kappaP_mean;
-    thetaP_var = thetaP_var/(chain.size() - burn_in) - thetaP_mean * thetaP_mean;
-    xi_var = xi_var/(chain.size() - burn_in) - xi_mean * xi_mean;
-    rho_var = rho_var/(chain.size() - burn_in) - rho_mean * rho_mean;
+    mu_var = mu_var/sample_count - mu_mean * mu_mean;
+    kappaP_var = kappaP_var/sample_count - kappaP_mean * kappaP_mean;
+    thetaP_var = thetaP_var/sample_count - thetaP_mean * thetaP_mean;
+    xi_var = xi_var/sample_count - xi_mean * xi_mean;
+    rho_var = rho_var/sample_count - rho_mean * rho_mean;
 
+    meanP.S0 = 0.0;
+    meanP.v0 = 0.0;
     meanP.mu = mu_mean;
     meanP.kappaP = kappaP_mean;
     meanP.thetaP = thetaP_mean;
     meanP.xi = xi_mean;
     meanP.rho = rho_mean;
 
+    varP.S0 = 0.0;
+    varP.v0 = 0.0;
     varP.mu = mu_var;
     varP.kappaP = kappaP_var;
     varP.thetaP = thetaP_var;
@@ -310,6 +326,8 @@ void mcmcOverLatent(HestonPParams& P, PPath& ppath, vector<double>& vProxy,Vecto
     cout<<"chain is built;"<<endl;
 
     chainStatistics(chain,1000,meanP,varP);
+    meanP.S0 = P.S0;
+    meanP.v0 = P.v0;
     // cout<<meanP<<endl;
     // cout<<varP<<endl;
     
@@ -340,16 +358,15 @@ void pmcmcOverLatent(HestonPParams& P, PPath& ppath,VectorXd x0,double dt,Heston
     double v0_actual = P.v0;
     // int n_iters = 5000;
     // int num_particles = 1500;
-    vector<VectorXd>chain = AdaptiveMetropolis(ppath,x0,n_iters,v0_actual,dt,num_particles); // 5000 --> n_iters (no of MH steps)
+    vector<VectorXd>chain = AdaptiveMetropolis(ppath,x0,n_iters,v0_actual,P.thetaP,dt,num_particles); // 5000 --> n_iters (no of MH steps)
     cout<<"chain is built;"<<endl;
     // HestonPParams meanP;
     // HestonPParams varP;
     
     chainStatistics(chain,1000,meanP,varP); // 1000 is burn in
+    meanP.S0 = P.S0;
+    meanP.v0 = P.v0;
     // cout<<meanP<<endl;
     // cout<<varP<<endl;
 }
 }//namespace qe;
-
-
-

@@ -20,7 +20,7 @@ namespace qe{
     double logPosterior(VectorXd x,double vbar, const PPath& ppath,double v0_actual,double dt,int N);
     VectorXd randn_vec(mt19937& rng, int d);
     vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const vector<double>& vProxy,const VectorXd& x0, int n_iters, double dt,int adapt_start, int adapt_every,double jitter);
-    vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int n_iters, double v0_actual,double dt,int num_particles,int adapt_start, int adapt_every,double jitter);
+    vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int n_iters, double v0_actual,double vbar_prior,double dt,int num_particles,int adapt_start, int adapt_every,double jitter);
     void chainStatistics(vector<VectorXd>& chain,int burn_in,HestonPParams& meanP,HestonPParams& varP);
     void mcmcOverLatent(HestonPParams& P, PPath& ppath,vector<double>& vProxy,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP,int n_iters);
     void pmcmcOverLatent(HestonPParams& P, PPath& ppath,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP,int n_iters,int num_particles);

@@ -79,6 +79,24 @@ void writePathToCSV(const PPath& ppath,const vector<double>hPath,const string& f
 
 }
 
+PPath buildExpandingPath(getRealData& data, int end_t) {
+    PPath ppath;
+
+    ppath.logS.resize(end_t + 1);
+    ppath.returns.resize(end_t);
+
+    for (int i = 0; i <= end_t; i++) {
+        ppath.logS[i] = log(data.get_S(i));
+    }
+
+    for (int i = 1; i <= end_t; ++i) {
+        ppath.returns[i - 1] = ppath.logS[i] - ppath.logS[i - 1];
+    }
+
+    return ppath;
+}
+
+
 int main() {
 
     getRealData Data;
@@ -155,6 +173,7 @@ int main() {
     Real best_rmseIv = 10000;    
 
     auto guess_P = Data.get_guess();
+    const double v0_guess = guess_P[6] * guess_P[6];
 
     int no_of_timesteps = Data.get_time_steps();
 
@@ -166,14 +185,14 @@ int main() {
         CalibrationSurface.S0 = Data.get_S(t);
         CalibrationSurface.r = Data.get_r(t);
         CalibrationSurface.q = Data.get_q(t);
-        CalibrationSurface.v0 = Data.get_guess()[6];
+        CalibrationSurface.v0 = v0_guess;
         
         // [TODO] check if eval data is todays date
         CalibrationSurface.evalDate = Data.get_date(t);
         
         for(int i = 0;i<repeat_cal;i++){
             HestonSurfaceFit InitialGuess;
-            InitialGuess.v0     = guess_P[6];
+            InitialGuess.v0     = v0_guess;
             InitialGuess.kappaQ = guess_P[2] + guess_P[5];
             InitialGuess.thetaQ = (double)(guess_P[2] * guess_P[3]) / (double)(guess_P[2] + guess_P[5]);
             InitialGuess.xi     = guess_P[1];
@@ -219,7 +238,7 @@ int main() {
             this_CalibrationSurface.S0 = Data.get_S(i);
             this_CalibrationSurface.r = Data.get_r(i);
             this_CalibrationSurface.q = Data.get_q(i);
-            this_CalibrationSurface.v0 = Data.get_guess()[6];
+            this_CalibrationSurface.v0 = v0_guess;
             
             // [TODO] check if eval data is todays date
             this_CalibrationSurface.evalDate = Data.get_date(i);
@@ -248,131 +267,156 @@ int main() {
     // Multi Surface Calibration Ends
     
     //GARCH Calibration Starts
-    ofstream garch_errors("garch_errors.csv");
-    garch_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
-
-    // number of time stamps required
-    // [TODO] - tune
-    int prev_path_steps = 5;
-
+    cout<<"Garch Calibration Started."<<endl;
     double dt = 1/double(steps);
     int n_iters = 5000;
     int num_particles = 1500;
 
-    for(int i = prev_path_steps ; i < no_of_timesteps ; i++){
-        PPath ppath;
-        ppath.returns.resize(prev_path_steps+1);
-        for(int timestep = i-prev_path_steps ; timestep <= i ; timestep++){
-            ppath.returns[timestep] = Data.get_log_return(timestep);
-        }
+    int starting_steps = 10;
+
+    if (no_of_timesteps <= 2) {
+        cout << "Not enough data for GARCH/MCMC. Need at least 3 price points, got "
+             << no_of_timesteps << "." << endl;
+        return 0;
+    }
+
+    if(starting_steps >= no_of_timesteps){
+        const int end_t = no_of_timesteps - 1;
+        PPath ppath = buildExpandingPath(Data, end_t);
         GarchParams gParams = garchPathFit(ppath);
-        // cout<<gParams<<endl;
-        vector<double>daily_hPath = getGarchPath(gParams,ppath);
-        vector<double>annual_hPath(daily_hPath.size(),0.0);
-        for (int i = 0; i < daily_hPath.size(); i++){
+        cout << "\nGARCH fit using full path through t=" << end_t << endl;
+        cout << gParams;
+        vector<double> daily_hPath = getGarchPath(gParams, ppath);
+        vector<double> annual_hPath(daily_hPath.size(), 0.0);
+        for (int i = 0; i < static_cast<int>(daily_hPath.size()); i++) {
             annual_hPath[i] = daily_hPath[i] * steps;
         }
-
-        // cout<<"v path length:"<<ppath.v.size()<<endl;
-        // cout<<"h path length:"<<annual_hPath.size()<<endl;
-
-        // string filename_garch = "./returns_with_garch.csv";
-        // writePathToCSV(ppath,annual_hPath,filename_garch);
-        // cout<<"GARCH Values written in file."<<endl;
-
         VectorXd x0(5);
-        
-            // 0 - mu
-            // 1 - sigma (vol-of-vol)
-            // 2 - kappa
-            // 3 - theta
-            // 4 - rho
-            // 5 - lambda
-            // 6 - Instantaneous volatility
+
         uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
         uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
         uniform_real_distribution<> dist_thetaP(guess_P[3] * (1-eps), guess_P[3] * (1+eps));
         uniform_real_distribution<> dist_xi_mcmc(guess_P[1] * (1-eps), guess_P[1] * (1+eps));
         uniform_real_distribution<> dist_rho_mcmc(max(-0.95, guess_P[4] - 0.4),min(-0.05, guess_P[4] + 0.4));
 
-        x0[0] = dist_mu(gen);
-        x0[1] = dist_kappaP(gen);
-        x0[2] = dist_thetaP(gen);
-        x0[3] = dist_xi_mcmc(gen);
-        x0[4] = dist_rho_mcmc(gen);
-
-        // mcmcOverLatent(HestonPParams& P, PPath ppath,vector<double>vProxy,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP)
-
         HestonPParams P{
-            // [TODO] change to index
-            Data.get_S(i-prev_path_steps),   // S0
-            guess_P[6],    // v0 // we do not have a value for this, using guess
-            guess_P[0],    // mu
-            guess_P[2],     // kappaP
-            guess_P[3],    // thetaP
-            guess_P[1],     // xi
-            guess_P[4]     // rho
+            Data.get_S(0),        // S0 for this expanding path
+            annual_hPath.front(), // v0: variance proxy at path start
+            guess_P[0],           // mu
+            guess_P[2],           // kappaP
+            guess_P[3],           // thetaP
+            guess_P[1],           // xi
+            guess_P[4]            // rho
         };
-        cout << P << endl;
+
+        double mu0 = dist_mu(gen);
+        double kappa0 = dist_kappaP(gen);
+        double theta0 = dist_thetaP(gen);
+        double xi0 = dist_xi_mcmc(gen);
+        double rho0 = dist_rho_mcmc(gen);
+
+        x0[0] = log(mu0);
+        x0[1] = log(kappa0);
+        x0[2] = log(theta0);
+        x0[3] = log(xi0);
+        x0[4] = atanh(rho0);
+
         HestonPParams meanP,varP;
         vector<double>vProxy = annual_hPath;
-        // [TODO] - check, passing guess, is it fine?
+
         mcmcOverLatent(P,ppath,vProxy,x0,dt,meanP,varP,n_iters);
         cout<<"Mean Statistics:"<<meanP<<endl;
         cout<<"Variance Statistics:"<<varP<<endl;
-
         PARAMS.meanP_garch_mcmc = meanP;
         PARAMS.varP_garch_mcmc = varP;
-        
+
     }
 
-    garch_errors.close();
+    else{
+        for(int end_t = starting_steps; end_t < no_of_timesteps; end_t ++){
+            PPath ppath = buildExpandingPath(Data, end_t);
+            GarchParams gParams = garchPathFit(ppath);
+            cout << "\nGARCH fit using expanding path through t=" << end_t << endl;
+            cout << gParams;
+            vector<double> daily_hPath = getGarchPath(gParams, ppath);
+            vector<double> annual_hPath(daily_hPath.size(), 0.0);
+            for (int i = 0; i < static_cast<int>(daily_hPath.size()); i++) {
+                annual_hPath[i] = daily_hPath[i] * steps;
+            }
+            VectorXd x0(5);
+
+            uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
+            uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
+            uniform_real_distribution<> dist_thetaP(guess_P[3] * (1-eps), guess_P[3] * (1+eps));
+            uniform_real_distribution<> dist_xi_mcmc(guess_P[1] * (1-eps), guess_P[1] * (1+eps));
+            uniform_real_distribution<> dist_rho_mcmc(max(-0.95, guess_P[4] - 0.4),min(-0.05, guess_P[4] + 0.4));
+
+            HestonPParams P{
+                Data.get_S(0),        // S0 for this expanding path
+                annual_hPath.front(), // v0: variance proxy at path start
+                guess_P[0],           // mu
+                guess_P[2],           // kappaP
+                guess_P[3],           // thetaP
+                guess_P[1],           // xi
+                guess_P[4]            // rho
+            };
+            
+            double mu0 = dist_mu(gen);
+            double kappa0 = dist_kappaP(gen);
+            double theta0 = dist_thetaP(gen);
+            double xi0 = dist_xi_mcmc(gen);
+            double rho0 = dist_rho_mcmc(gen);
+
+            x0[0] = log(mu0);
+            x0[1] = log(kappa0);
+            x0[2] = log(theta0);
+            x0[3] = log(xi0);
+            x0[4] = atanh(rho0);
+            HestonPParams meanP,varP;
+            vector<double>vProxy = annual_hPath;
+            mcmcOverLatent(P,ppath,vProxy,x0,dt,meanP,varP,n_iters);
+            cout<<"Mean Statistics:"<<meanP<<endl;
+            cout<<"Variance Statistics:"<<varP<<endl;
+            PARAMS.meanP_garch_mcmc = meanP;
+            PARAMS.varP_garch_mcmc = varP;
+        }
+    }
+    
     //GARCH Calibration Ends
 
-    //pmcmcOverLatent(HestonPParams& P, PPath& ppath,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP)
     //PMCMC Calibration Starts
-
-    ofstream pmcmc_calibration_errors("pmcmc_errors.csv");
-    pmcmc_calibration_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
-    
-    for(int i = prev_path_steps ; i < no_of_timesteps ; i++){
-        PPath ppath;
-        ppath.returns.resize(prev_path_steps+1);
-        for(int timestep = i-prev_path_steps ; timestep <= i ; timestep++){
-            ppath.returns[timestep] = Data.get_log_return(timestep);
-        }
-
+    if(starting_steps >= no_of_timesteps){
+        const int end_t = no_of_timesteps - 1;
+        PPath ppath = buildExpandingPath(Data, end_t);
         VectorXd x0(5);
-        
-            // 0 - mu
-            // 1 - sigma (vol-of-vol)
-            // 2 - kappa
-            // 3 - theta
-            // 4 - rho
-            // 5 - lambda
-            // 6 - Instantaneous volatility
+
         uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
         uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
         uniform_real_distribution<> dist_thetaP(guess_P[3] * (1-eps), guess_P[3] * (1+eps));
         uniform_real_distribution<> dist_xi_mcmc(guess_P[1] * (1-eps), guess_P[1] * (1+eps));
         uniform_real_distribution<> dist_rho_mcmc(max(-0.95, guess_P[4] - 0.4),min(-0.05, guess_P[4] + 0.4));
 
-        x0[0] = dist_mu(gen);
-        x0[1] = dist_kappaP(gen);
-        x0[2] = dist_thetaP(gen);
-        x0[3] = dist_xi_mcmc(gen);
-        x0[4] = dist_rho_mcmc(gen);
-
         HestonPParams P{
-            // [TODO] change to index
-            Data.get_S(i-prev_path_steps),   // S0
-            guess_P[6],    // v0 // we do not have a value for this, using guess
-            guess_P[0],    // mu
-            guess_P[2],     // kappaP
-            guess_P[3],    // thetaP
-            guess_P[1],     // xi
-            guess_P[4]     // rho
+            Data.get_S(0),        // S0 for this expanding path
+            v0_guess,             // v0: initial variance guess
+            guess_P[0],           // mu
+            guess_P[2],           // kappaP
+            guess_P[3],           // thetaP
+            guess_P[1],           // xi
+            guess_P[4]            // rho
         };
+        
+        double mu0 = dist_mu(gen);
+        double kappa0 = dist_kappaP(gen);
+        double theta0 = dist_thetaP(gen);
+        double xi0 = dist_xi_mcmc(gen);
+        double rho0 = dist_rho_mcmc(gen);
+
+        x0[0] = log(mu0);
+        x0[1] = log(kappa0);
+        x0[2] = log(theta0);
+        x0[3] = log(xi0);
+        x0[4] = atanh(rho0);
 
         HestonPParams meanP_pmcmc,varP_pmcmc;
         pmcmcOverLatent(P,ppath,x0,dt,meanP_pmcmc,varP_pmcmc,n_iters,num_particles);
@@ -391,15 +435,73 @@ int main() {
             vector<double>sample = ancestralSampling(finalFilter,gen);
             sampledPaths[i] = sample;
         }
-        
+
         writeSampledPaths(sampledPaths);
         cout<<"Sampled Paths from PMCMC Written."<<endl; 
 
         PARAMS.meanP_pmcmc = meanP_pmcmc;
         PARAMS.varP_pmcmc = varP_pmcmc;
+
+    }
+    else{
+        for(int end_t = starting_steps; end_t < no_of_timesteps; end_t ++){
+            PPath ppath = buildExpandingPath(Data, end_t);
+            VectorXd x0(5);
+
+            uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
+            uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
+            uniform_real_distribution<> dist_thetaP(guess_P[3] * (1-eps), guess_P[3] * (1+eps));
+            uniform_real_distribution<> dist_xi_mcmc(guess_P[1] * (1-eps), guess_P[1] * (1+eps));
+            uniform_real_distribution<> dist_rho_mcmc(max(-0.95, guess_P[4] - 0.4),min(-0.05, guess_P[4] + 0.4));
+
+            HestonPParams P{
+                Data.get_S(0),        // S0 for this expanding path
+                v0_guess,             // v0: initial variance guess
+                guess_P[0],           // mu
+                guess_P[2],           // kappaP
+                guess_P[3],           // thetaP
+                guess_P[1],           // xi
+                guess_P[4]            // rho
+            };
+            
+            double mu0 = dist_mu(gen);
+            double kappa0 = dist_kappaP(gen);
+            double theta0 = dist_thetaP(gen);
+            double xi0 = dist_xi_mcmc(gen);
+            double rho0 = dist_rho_mcmc(gen);
+
+            x0[0] = log(mu0);
+            x0[1] = log(kappa0);
+            x0[2] = log(theta0);
+            x0[3] = log(xi0);
+            x0[4] = atanh(rho0);
+
+            HestonPParams meanP_pmcmc,varP_pmcmc;
+            pmcmcOverLatent(P,ppath,x0,dt,meanP_pmcmc,varP_pmcmc,n_iters,num_particles);
+            cout<<"Mean Statistics:"<<meanP_pmcmc<<endl;
+            cout<<"Variance Statistics:"<<varP_pmcmc<<endl;
+            filterValues finalFilter = ParticleFilter(meanP_pmcmc,P.v0,ppath,dt,num_particles);
+
+            int N_pmcmc = finalFilter.particles[0].size();
+            int T_pmcmc = finalFilter.particles.size();
+            
+            int numSampledPaths = 200;
+            vector<vector<double>> sampledPaths(numSampledPaths,vector<double>(T_pmcmc,0));
+
+
+            for(int i = 0; i < numSampledPaths;i++){
+                vector<double>sample = ancestralSampling(finalFilter,gen);
+                sampledPaths[i] = sample;
+            }
+
+            writeSampledPaths(sampledPaths);
+            cout<<"Sampled Paths from PMCMC Written."<<endl; 
+
+            PARAMS.meanP_pmcmc = meanP_pmcmc;
+            PARAMS.varP_pmcmc = varP_pmcmc;
+        }
     }
 
-    pmcmc_calibration_errors.close();
     //PMCMC Calibration Ends
     // cout<<"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"<<endl;
     // cout<<"Final Prints"<<endl;
@@ -415,4 +517,3 @@ int main() {
 
     return 0;
 }
-

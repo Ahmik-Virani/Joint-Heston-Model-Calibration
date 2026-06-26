@@ -12,6 +12,8 @@
 #include <set>
 #include <thread>
 #include <atomic>
+#include <mutex>
+#include <numeric>
 #include <unsupported/Eigen/NonLinearOptimization>
 #include <unsupported/Eigen/NumericalDiff>
 #include <Eigen/Dense>
@@ -114,7 +116,7 @@ private:
 
         // jump intensity, jump volatility more than 0
         particle[7] = max(particle[7], 1e-8);
-        particle[9] = max(particle[9], 1e-8)
+        particle[9] = max(particle[9], 1e-8);
 
         // volatility moves via bates discretization
         const double z = distribution(local_rng);
@@ -133,7 +135,7 @@ private:
         // we also need jumps
         normal_distribution<double> jumpDist(particle[8], particle[9]);
         double jumpSum = 0.0;
-        for(int k = 0 ; k < nJumps ; j++){
+        for(int k = 0 ; k < nJumps ; k++){
             jumpSum += jumpDist(local_rng);
         }
 
@@ -295,8 +297,8 @@ private:
     
         // [TODO] - Arka
         // please ensure that sizes are 11 everywhere to accomodate the new parameters
-        Eigen::VectorXd mu(7);
-        for(int i = 0; i < 7; i++) {
+        Eigen::VectorXd mu(11);
+        for(int i = 0; i < 11; i++) {
             mu(i) = map_result.result[i];
         }
     
@@ -305,24 +307,24 @@ private:
         Eigen::LLT<Eigen::MatrixXd> llt(cov);
     
         if(llt.info() != Eigen::Success) {
-            cov += 1e-6 * Eigen::MatrixXd::Identity(7, 7);
+            cov += 1e-6 * Eigen::MatrixXd::Identity(11, 11);
             llt.compute(cov);
         }
     
         Eigen::MatrixXd L = llt.matrixL();
     
         for(int p = 0; p < N; p++) {
-            Eigen::VectorXd z(7);
+            Eigen::VectorXd z(11);
     
-            for(int j = 0; j < 7; j++) {
+            for(int j = 0; j < 11; j++) {
                 z(j) = normal(local_rng);
             }
     
             Eigen::VectorXd sample = mu + L * z;
     
-            particles[p].resize(7);
+            particles[p].resize(11);
     
-            for(int j = 0; j < 7; j++) {
+            for(int j = 0; j < 11; j++) {
                 particles[p][j] = sample(j);
             }
     
@@ -352,25 +354,25 @@ private:
             data.get_q(time_index)
         );
         surfaceCalibrationLaplacian::MAP map_result = this_particle.getCalibration();
-        Eigen::VectorXd mu(7);
-        for(int i = 0;i < 7;i++){
+        Eigen::VectorXd mu(11);
+        for(int i = 0;i < 11;i++){
             mu(i) = map_result.result[i];
         }
         Eigen::MatrixXd cov = map_result.covariance_p;
         Eigen::LLT<Eigen::MatrixXd> llt(cov);
         if(llt.info() != Eigen::Success) {
-            cov += 1e-6 * Eigen::MatrixXd::Identity(7, 7);
+            cov += 1e-6 * Eigen::MatrixXd::Identity(11, 11);
             llt.compute(cov);
         }
         Eigen::MatrixXd L = llt.matrixL();
-        Eigen::VectorXd z(7);
-        for(int j = 0; j < 7; j++){
+        Eigen::VectorXd z(11);
+        for(int j = 0; j < 11; j++){
             z(j) = normal(local_rng);
         }
         Eigen::VectorXd sample = mu + L * z;
-        particles[particle_index].resize(7);
+        particles[particle_index].resize(11);
 
-        for(int j = 0; j < 7; j++) {
+        for(int j = 0; j < 11; j++) {
             particles[particle_index][j] = sample(j);
         }
     
@@ -379,6 +381,8 @@ private:
         particles[particle_index][3] = max(particles[particle_index][3], 1e-8);
         particles[particle_index][4] = clamp(particles[particle_index][4], -0.999, 0.999);
         particles[particle_index][6] = max(particles[particle_index][6], 1e-8);
+        particles[particle_index][7] = max(particles[particle_index][7], 1e-8);
+        particles[particle_index][9] = max(particles[particle_index][9], 1e-8);
     }
 
     // function to compute the mean and variance of each parameter
@@ -505,7 +509,17 @@ public:
         const vector<double> qParams = P_to_Q(particles[i]);
         
         // we pass the parameters and compute the average error, i.e. how well it fits the current surface
-        double penalty = data.get_penalty(t, particles[i][6], qParams[2], qParams[3], particles[i][1], particles[i][4]);
+        double penalty = data.get_penalty(
+            t,
+            particles[i][6],
+            qParams[2],
+            qParams[3],
+            particles[i][1],
+            particles[i][4],
+            qParams[7],
+            qParams[8],
+            qParams[9]
+        );
 
         weights[i] *= penalty;
         cur_weights[i] *= penalty;
@@ -555,7 +569,7 @@ public:
         ofstream log_file("smooth_calibration.log");
         ofstream statistical_file("statistics.log");
         ofstream statistical_csv("parameters.csv");
-        statistical_csv << "mu,vol-of-vol,kappa,theta,rho,lambda,v_t" << '\n';
+        statistical_csv << "mu,vol-of-vol,kappa,theta,rho,lambda,v_t,jump_intensity,jump_mean,jump_volatility,eta" << '\n';
         for(int t = 1 ; t < time_steps ; t++){
             log_file << "Time: " << t << '\n';
     
@@ -603,7 +617,17 @@ public:
 
                     const vector<double> qParams = P_to_Q(particles[i]);
 
-                    double penalty_for_i = data.get_penalty(t, particles[i][6], qParams[2], qParams[3], particles[i][1], particles[i][4]);
+                    double penalty_for_i = data.get_penalty(
+                        t,
+                        particles[i][6],
+                        qParams[2],
+                        qParams[3],
+                        particles[i][1],
+                        particles[i][4],
+                        qParams[7],
+                        qParams[8],
+                        qParams[9]
+                    );
 
                     weights[i] = exp(likelihood_for_i) * penalty_for_i * alpha / reinitialized_indexes.size();
                 }
@@ -635,16 +659,22 @@ public:
             }
 
             // errors to print
+            vector<double> mean_particle(11);
+            for(int i = 0; i < 11; i++){
+                mean_particle[i] = mean_variance[i].first;
+            }
+            const vector<double> mean_q_params = P_to_Q(mean_particle);
+
             data.get_penalty(
-                t, 
-                mean_variance[6].first, 
-                mean_variance[2].first + mean_variance[5].first, 
-                (mean_variance[2].first * mean_variance[3].first)/(mean_variance[2].first + mean_variance[5].first + 1e-8), 
-                mean_variance[1].first, 
-                mean_variance[4].first, 
-                mean_variance[7] * exp(mean_variance[10] * mean_variance[8] + 0.5 * mean_variance[10] * mean_variance[10] * mean_variance[9] * mean_variance[9]),
-                mean_variance[8] + mean_variance[10] * mean_variance[9] * mean_variance[9],
-                mean_variance[9],
+                t,
+                mean_particle[6],
+                mean_q_params[2],
+                mean_q_params[3],
+                mean_particle[1],
+                mean_particle[4],
+                mean_q_params[7],
+                mean_q_params[8],
+                mean_q_params[9],
                 error_file
             );
 

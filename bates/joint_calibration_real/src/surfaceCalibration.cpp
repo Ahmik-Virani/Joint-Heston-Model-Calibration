@@ -219,7 +219,7 @@ class surfaceCalibrationLaplacian {
         double sigma_C_;
 
         // [TODO] - check if these conversions are correct
-        vector<double> P_to_Q(const vector<double> &particle){
+        vector<double> P_to_Q(const vector<double> &particle) const {
             vector<double> Q_space_params = particle;
             Q_space_params[2] = particle[2] + particle[5];
             Q_space_params[3] = (particle[2] * particle[3]) / (particle[2] + particle[5] + 1e-8);
@@ -266,7 +266,7 @@ class surfaceCalibrationLaplacian {
 
         // [TODO] - Arka
         Eigen::MatrixXd make_original_covariance(Eigen::MatrixXd covariance_u,const vector<double> &unconstrained_params) const{
-            Eigen::MatrixXd G = Eigen::MatrixXd::Zero(7, 7);
+            Eigen::MatrixXd G = Eigen::MatrixXd::Zero(11, 11);
             G(0,0) = 1.0;
             G(1,1) = std::exp(unconstrained_params[1]);
             G(2,2) = std::exp(unconstrained_params[2]);
@@ -277,6 +277,10 @@ class surfaceCalibrationLaplacian {
 
             G(5,5) = 1.0;
             G(6,6) = std::exp(unconstrained_params[6]);
+            G(7,7)   = std::exp(unconstrained_params[7]);  // jump intensity
+            G(8,8)   = 1.0;                                // jump mean
+            G(9,9)   = std::exp(unconstrained_params[9]);  // jump volatility
+            G(10,10) = 1.0;                                // eta
 
             Eigen::MatrixXd covariance_p =
                 G * covariance_u * G.transpose();
@@ -346,7 +350,7 @@ class surfaceCalibrationLaplacian {
             return SSE;
         }
 
-        vector<double> loss_function_lms(const vector<double> &unconstrained_params) const {
+        vector<double> loss_function_lms(const vector<double> &unconstrained_params)const {
             vector<double> pParams = make_original(unconstrained_params);
             vector<double> qParams = P_to_Q(pParams);
         
@@ -446,11 +450,11 @@ class surfaceCalibrationLaplacian {
                     : self(s) {}
         
                 int inputs() const {
-                    return 7;   // number of parameters
+                    return 11;   // number of parameters
                 }
         
                 int values() const {
-                    return static_cast<int>(self.grid_.size()) + 7;
+                    return static_cast<int>(self.grid_.size()) + 11;
                 }
         
                 int operator()(const Eigen::VectorXd& x,
@@ -552,7 +556,7 @@ class surfaceCalibrationLaplacian {
                 0.05,   // theta
                 0.30,   // rho
                 0.50,   // lambda
-                0.05    // v0
+                0.05,    // v0
 
                 0.30,   // jump intensity
                 0.05,   // jump mean

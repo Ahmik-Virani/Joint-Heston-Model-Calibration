@@ -29,9 +29,9 @@ namespace qe{
 
     static inline double logNormal(double x, double mu, double sigma);
     double observationLikelihood(double r,double v,double mu,double dt);
-    double transitionFunction(const HestonPParams& P, double v,double r, double dt);
+    double transitionFunction(const BatesPParams& P, double v,double r, double dt);
     vector<int> systematicResample(const vector<double>& W, std::mt19937& gen);
-    filterValues ParticleFilter(const HestonPParams& P, double v0_actual,const PPath& ppath,double dt,int N);
+    filterValues ParticleFilter(const BatesPParams& P, double v0_actual,const PPath& ppath,double dt,int N);
     vector<double> ancestralSampling(filterValues& filter, mt19937& gen);
     void writeSampledPaths(vector<vector<double>>& sampledPaths,string filename = "sampled_paths.csv");
 }

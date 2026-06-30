@@ -25,6 +25,6 @@ namespace qe {
 
     void print_Callgrid(const CallGrid& grid);
     void print_Surfaces(const std::vector<CallGrid>& surfaces);
-    void callgrid(const HestonQParams& Q,CallGrid& grid);
+    void callgrid(const BatesQParams& Q,CallGrid& grid);
     Real impliedVolFromCallPrice(Real CallPrice,Real S0, Real K, Time T, Rate r, Rate q);
 }

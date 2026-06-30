@@ -34,7 +34,7 @@ ostream& operator<<(ostream& os, const PPath& p) {
     return os;
 }
 
-PPath logReturns(const HestonPParams& P, Size steps, Size seed){
+PPath logReturns(const BatesPParams& P, Size steps, Size seed){
     PPath ppath;
     if (P.kappaP <= 0.0) throw invalid_argument("kappaP must be > 0");
     if (P.thetaP <= 0.0) throw invalid_argument("thetaP must be > 0");
@@ -42,6 +42,8 @@ PPath logReturns(const HestonPParams& P, Size steps, Size seed){
     if (fabs(P.rho) > 1.0) throw invalid_argument("rho must be in [-1,1]");
     if(P.S0 <= 0.0) throw invalid_argument("S0 must be >= 0");
     if(P.v0 < 0.0) throw invalid_argument("V0 muste ve > 0");
+    if (P.JumpIntensityP <= 0.0) throw std::invalid_argument("JumpIntensity must be > 0");
+    if (P.JumpVolatility <= 0.0) throw std::invalid_argument("JumpVolatility must be > 0");
 
     Calendar cal = TARGET();
     Date today(26,February,2026);
@@ -49,8 +51,9 @@ PPath logReturns(const HestonPParams& P, Size steps, Size seed){
     Handle<YieldTermStructure> rTS(ext::make_shared<FlatForward>(today,P.mu,Actual365Fixed()));
     Handle<YieldTermStructure> qTS(ext::make_shared<FlatForward>(today, 0.0, Actual365Fixed()));
     Handle<Quote> s0(ext::make_shared<SimpleQuote>(P.S0));
-    auto process = ext::make_shared<HestonProcess>(rTS,qTS,s0,P.v0,P.kappaP,P.thetaP,P.xi,P.rho,
-                    HestonProcess::QuadraticExponential);
+    auto process = ext::make_shared<BatesProcess>(rTS,qTS,s0,P.v0,P.kappaP,P.thetaP,P.xi,P.rho,
+        P.JumpIntensityP, P.JumpMeanP, P.JumpVolatility,
+                    BatesProcess::QuadraticExponential);
 
     Time T = 1.0;
     Time dt = T/steps;

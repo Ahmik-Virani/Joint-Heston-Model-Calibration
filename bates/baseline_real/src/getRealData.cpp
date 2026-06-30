@@ -11,9 +11,8 @@
 #include <sstream>
 #include <ql/time/date.hpp>
 #include <ql/time/daycounters/actual365fixed.hpp>
-// #include <ql/time/calendars/india.hpp>
-#include "qe/surface.hpp"
-#include <qe/callPrice.hpp>
+
+#include "callPrice.cpp"
 
 using namespace std;
 using namespace QuantLib;
@@ -24,12 +23,12 @@ private:
     int t;
 
     vector<double> S;
-    vector<string> dates;
-    map<string, double> rates;      // a map which maps the time to the rate
-    map<int, string> index_to_date; // a map to match the index to the date
+    vector<pair<string, int>> dates_and_hour;
+    map<string, double> rates;      // a map which maps the date to the rate
+    map<int, pair<string, int>> index_to_date_and_hour; // a map to match the index to the date and hour
 
     // Grid for each time steps
-    // time, K, T, impliedVol
+    // time, K, T
     vector<vector<vector<double>>> grid;
 
     // convert string to QunatLib Date
@@ -38,27 +37,29 @@ private:
 
         std::string dayStr, monthStr, yearStr;
 
-        getline(ss, dayStr, '-');
-        getline(ss, monthStr, '-');
+        // here date is yyyy-mm-dd
         getline(ss, yearStr, '-');
+        getline(ss, monthStr, '-');
+        getline(ss, dayStr, '-');
 
         int day = std::stoi(dayStr);
+        int monthInt = std::stoi(monthStr);
         int year = std::stoi(yearStr);
 
         Month month;
 
-        if      (monthStr == "Jan") month = January;
-        else if (monthStr == "Feb") month = February;
-        else if (monthStr == "Mar") month = March;
-        else if (monthStr == "Apr") month = April;
-        else if (monthStr == "May") month = May;
-        else if (monthStr == "Jun") month = June;
-        else if (monthStr == "Jul") month = July;
-        else if (monthStr == "Aug") month = August;
-        else if (monthStr == "Sep") month = September;
-        else if (monthStr == "Oct") month = October;
-        else if (monthStr == "Nov") month = November;
-        else if (monthStr == "Dec") month = December;
+        if      (monthInt == 1) month = January;
+        else if (monthInt == 2) month = February;
+        else if (monthInt == 3) month = March;
+        else if (monthInt == 4) month = April;
+        else if (monthInt == 5) month = May;
+        else if (monthInt == 6) month = June;
+        else if (monthInt == 7) month = July;
+        else if (monthInt == 8) month = August;
+        else if (monthInt == 9) month = September;
+        else if (monthInt == 10) month = October;
+        else if (monthInt == 11) month = November;
+        else if (monthInt == 12) month = December;
         else throw std::runtime_error("Invalid month");
 
         return QuantLib::Date(day, month, year);
@@ -80,20 +81,23 @@ public:
         while(getline(s_inp, line)){
             stringstream ss(line);
             string date;
+            string hour;
             string _val;
             getline(ss, date, ',');
+            getline(ss, hour, ',');
             getline(ss, _val, ',');
 
             double val = stod(_val);
+            int hr = stoi(hour);
             S.push_back(val);
-            dates.push_back(date);
+            dates_and_hour.push_back({date,hr});
         }
 
         // now we are done getting the stock path
         s_inp.close();
 
         // get the risk free rate
-        // please note that this is monthly
+        // please note that this is daily
         ifstream r_inp("r_path.csv");
         if (!r_inp.is_open()) {
             throw runtime_error("Could not open r_path.csv");
@@ -111,10 +115,8 @@ public:
 
             double rate = stod(_r);
 
-            // since rates are monthly
-            // we only store month and year
-            string store_date = date.substr(3);
-            rates[store_date] = rate;
+            // since rates are daily, we store it using index of date
+            rates[date] = rate;
         }
 
         // we are done with the rates
@@ -131,39 +133,44 @@ public:
         
         grid.resize(S.size());
        
-        // get the indian business calendar
-        // [TODO] - check indian days or calendar days
-        QuantLib::India calendar;
-
-        int working=0, not_working=0;
+        int working=0,not_working=0;
+        // need fixed 365 day calendar
         while(getline(C_inp, line)){
             stringstream ss(line);
-            string date, Expiry, Strike_Price, Close;
+            string date, hour, Expiry, Strike_Price, Close;
             getline(ss, date, ',');
+            getline(ss, hour, ',');
             getline(ss, Expiry, ',');
             getline(ss, Strike_Price, ',');
             getline(ss, Close, ',');
 
             QuantLib::Date this_date = parseDate(date);
             QuantLib::Date this_expiry = parseDate(Expiry);
-            Size tradingDays = calendar.businessDaysBetween(this_date, this_expiry);
             
-            // [TODO] - check if this or trading days
-            // testing with calendar days
             QuantLib::Integer calendarDays = this_expiry - this_date;
-            double maturityYears = std::max(1.0 / 365.0, calendarDays / 365.0);
+            // [TODO] check if expiry hour on expiry date is correct or not
+            int expiry_hour = 8;
+            int hr = stoi(hour);
+            int hours = expiry_hour - hr;
+            double maturityYears = std::max(1.0 / (365.0 * 24.0), (calendarDays / 365.0 + hours / (24.0 * 365.0)));
 
-            if(index_to_date.empty() || index_to_date[cur_ind-1]!=date){
-                index_to_date[cur_ind++] = date;
+            if(index_to_date_and_hour.empty() || index_to_date_and_hour[cur_ind-1]!=make_pair(date, hr)){
+                index_to_date_and_hour[cur_ind++] = {date,hr};
             }
+            // [TODO] - check if fine
 
-            // [TODO] add q, i.e. replace 0.0
-
-            // added handling
             try
             {
-                double implied_vol = qe::impliedVolFromCallPrice(stod(Close), S[cur_ind-1], stod(Strike_Price), maturityYears, rates[index_to_date[cur_ind-1].substr(3)]/100.0, 0.0);
-                grid[cur_ind-1].push_back({stod(Strike_Price), maturityYears, stod(Close), implied_vol, double(tradingDays)});
+                double implied_vol = qe::impliedVolFromCallPrice(
+                    stod(Close),
+                    S[cur_ind-1],
+                    stod(Strike_Price),
+                    maturityYears,
+                    rates[date] / 100.0,
+                    0.0
+                );
+                int maturityDays = std::max(1, static_cast<int>(std::ceil(365.0 * maturityYears)));
+                grid[cur_ind-1].push_back({stod(Strike_Price), maturityYears, stod(Close), implied_vol, double(maturityDays)});
                 working++;
             }
             catch(const QuantLib::Error& e)
@@ -171,11 +178,10 @@ public:
                 not_working++;
                 continue;
             }
+            
         }
-
-        cout << "The data in grid is: " << working << endl;
-        cout << "The data missed is: " << not_working << endl;
         C_inp.close();
+        cout << "Working:" << working << '\n' << "Not Working:" <<not_working << '\n';
     }
 
     // get value of S at a particular day
@@ -183,15 +189,12 @@ public:
         return S[i];
     }
 
-    // get rate of a particular date
+    // get rate of a particular index
     double get_r(int i){
         // get which date we need
-        string date = index_to_date[i];
-        
-        // we only need month and year
-        string fetch_date = date.substr(3);
+        string date = index_to_date_and_hour[i].first;
 
-        return (rates[fetch_date]/100.0);
+        return (rates[date]/100.0);
     }
 
     // [TODO] - can do this
@@ -201,12 +204,11 @@ public:
 
     // get log return at time i
     double get_log_return(int i){
-        if(i==0) return log(S[i]);
         return log(S[i] / S[i-1]);
     }
 
     int get_time_steps(){
-        return index_to_date.size();
+        return index_to_date_and_hour.size();
     }
 
     // get the grid for a particular day
@@ -214,6 +216,7 @@ public:
         return grid[i];
     }
 
+    // [TODO] - update to include bates terms
     // get some guess for the parameters
     vector<double> get_guess(){
         // 0 - mu
@@ -223,25 +226,33 @@ public:
         // 4 - rho
         // 5 - lambda
         // 6 - Instantaneous volatility
-        return {0.1, 0.5, 2, 0.04, -0.7, 0.5, 0.20};
+        // 7 - Jump Intensity
+        // 8 - Jump Mean
+        // 9 - Jump Volatility
+        // 10 - eta
+        return {0.1, 0.5, 2, 0.04, -0.7, 0.5, 0.20, 0.5, -0.05, 0.2, 0.0};
     }
 
     // get date for index i
-    QuantLib::Date get_date(int i){
-        return parseDate(index_to_date[i]);
+    pair<QuantLib::Date,int> get_date_and_hour(int i){
+        return {parseDate(index_to_date_and_hour[i].first), index_to_date_and_hour[i].second};
     }
 
-    // a function which takes in heston parameters at time t
+    QuantLib::Date get_date(int i){
+        return parseDate(index_to_date_and_hour[i].first);
+    }
+
+    // a function which takes in Bates parameters at time t
     // and checks how will they fit the current grid
     // it returns the error
-    double get_penalty(int t, double v0, double kappaQ, double thetaQ, double xi, double rho){
+    double get_penalty(int t, double v0, double kappaQ, double thetaQ, double xi, double rho, double jumpIntensity, double jumpMean, double jumpVolatility){
 
         double total_error = 0.0;
 
         // go through all the vectors of the grid at timestep t
         for(int i = 0 ; i < grid[t].size() ; i++){
             double computed_call_price = 0.0;
-            computed_call_price = qe::hestonCallPrice(
+            computed_call_price = qe::batesCallPrice(
                 get_S(t),                          // spot
                 grid[t][i][0],                     // fixed strike
                 grid[t][i][1],                     // maturity in years (scalar)
@@ -252,6 +263,9 @@ public:
                 max(1e-8, thetaQ),                 // thetaQ
                 max(1e-8, xi),                     // xi
                 clamp(rho, -0.999, 0.999),         // rho
+                max(1e-8, jumpIntensity),
+                jumpMean,
+                max(1e-8, jumpVolatility),
                 get_date(t)                        // anchor pricing at this day
             );   
 
@@ -263,12 +277,12 @@ public:
     }
 
     // same as earlier, but we print to a log file
-    void get_penalty(int t, double v0, double kappaQ, double thetaQ, double xi, double rho, ofstream &log_file){
+    void get_penalty(int t, double v0, double kappaQ, double thetaQ, double xi, double rho, double jumpIntensity, double jumpMean, double jumpVolatility, ofstream &log_file){
 
         // go through all the vectors of the grid at timestep t
         for(int i = 0 ; i < grid[t].size() ; i++){
             double computed_call_price = 0.0;
-            computed_call_price = qe::hestonCallPrice(
+            computed_call_price = qe::batesCallPrice(
                 get_S(t),                          // spot
                 grid[t][i][0],                     // fixed strike
                 grid[t][i][1],                     // maturity in years (scalar)
@@ -279,13 +293,16 @@ public:
                 max(1e-8, thetaQ),                 // thetaQ
                 max(1e-8, xi),                     // xi
                 clamp(rho, -0.999, 0.999),         // rho
+                max(1e-8, jumpIntensity),
+                jumpMean,
+                max(1e-8, jumpVolatility),
                 get_date(t)                        // anchor pricing at this day
             );   
 
             double true_price = grid[t][i][2];
             double error = abs(true_price - computed_call_price);
-            // date, strike, maturity, true_price, computed_price, abs_error
-            log_file << index_to_date[t] << ',' << grid[t][i][0] << ',' << grid[t][i][1] << ',' << true_price << ',' << computed_call_price << ',' << error << '\n';
+            // date, hour, strike, maturity, true_price, computed_price, abs_error
+            log_file << index_to_date_and_hour[t].first << ',' << index_to_date_and_hour[t].second << ',' << grid[t][i][0] << ',' << grid[t][i][1] << ',' << true_price << ',' << computed_call_price << ',' << error << '\n';
         }
     }
 };

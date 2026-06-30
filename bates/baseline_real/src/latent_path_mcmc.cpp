@@ -19,7 +19,7 @@ using namespace Eigen;
 
 
 namespace qe {
-double getPathLikelihood(const HestonPParams& P, const PPath& ppath,const vector<double>& vProxy,double dt){
+double getPathLikelihood(const BatesPParams& P, const PPath& ppath,const vector<double>& vProxy,double dt){
     int n = ppath.returns.size();
     if (ppath.returns[n - 1] == 0 ) n = n - 1;
     //cout<<"Size of n:"<<n<<endl;
@@ -34,6 +34,9 @@ double getPathLikelihood(const HestonPParams& P, const PPath& ppath,const vector
     double thetaP = P.thetaP;
     double xi = P.xi;
     double rho = P.rho;
+    double JumpIntensity = P.JumpIntensityP;
+    double JumpMean = P.JumpMeanP;
+    double JumpVolatility = P.JumpVolatility;
     const double pi = 3.141592;
     //double dt = 1.0/252;
     double mean_t_exp = 0.0;
@@ -43,7 +46,9 @@ double getPathLikelihood(const HestonPParams& P, const PPath& ppath,const vector
         Matrix2d t_A_inverse;
         Vector2d del_t_y;
 
-        t_m << (mu - 0.5 * vProxy[i]) * dt ,kappaP * (thetaP - vProxy[i]) * dt;
+        // [TODO] - check if this is correct
+        double kappaJ = exp(JumpMean + 0.5 * JumpVolatility * JumpVolatility) - 1.0;
+        t_m << (mu - 0.5 * vProxy[i] - JumpIntensity * kappaJ) * dt , kappaP * (thetaP - vProxy[i]) * dt;
         double denom = vProxy[i] * (1 - rho*rho) * dt;
         t_A_inverse << 1/denom, -rho/(denom * xi),-rho/(denom * xi), 1/(xi * xi * denom);
         //t_A << vProxy[i],vProxy[i] * rho * xi,vProxy[i] * rho * xi,vProxy[i] * rho * rho;
@@ -58,23 +63,33 @@ double getPathLikelihood(const HestonPParams& P, const PPath& ppath,const vector
     return logLikelihood;
 }
 
-HestonPParams xToParamsMCMC(VectorXd& x){
-    HestonPParams P;
-    P.mu = exp(x[0]);
+// [TODO] - are these constrainsts correct
+BatesPParams xToParamsMCMC(VectorXd& x){
+    BatesPParams P;
+    //[TODO] -  was earlier exp
+    P.mu = x[0];
     P.kappaP = exp(x[1]);
     P.thetaP = exp(x[2]);
     P.xi = exp(x[3]);
     P.rho = tanh(x[4]);
+    P.JumpIntensityP = exp(x[5]);
+    P.JumpMeanP = x[6];
+    P.JumpVolatility = exp(x[7]);
     return P;
 }
 
-VectorXd ParamstoxMCMC(HestonPParams& P){
+// [TODO] - make sure this is aligned with the above function
+VectorXd ParamstoxMCMC(BatesPParams& P){
     VectorXd x;
-    x[0] = log(P.mu);
+    x[0] = P.mu;
     x[1] = log(P.kappaP);
     x[2] = log(P.thetaP);
     x[3] = log(P.xi);
     x[4] = atanh(P.rho);
+    x[5] = log(P.JumpIntensityP);
+    x[6] = P.JumpMeanP;
+    x[7] = log(P.JumpVolatility);
+
     return x;
 }
 
@@ -91,19 +106,25 @@ double logPrior(VectorXd x,double vbar){
     lp += log_norm_prior(x[2], std::log(vbar), 1.0);
     lp += log_norm_prior(x[3], std::log(0.3), 1.0);
     lp += log_norm_prior(x[4], 0.0, 1.5);
+
+    // [TODO] - if these are fine
+    // Bates jump params
+    lp += log_norm_prior(x[5], std::log(0.5), 1.0);    // log(JumpIntensity)
+    lp += log_norm_prior(x[6], -0.05, 0.25);           // JumpMean
+    lp += log_norm_prior(x[7], std::log(0.2), 1.0);    // log(JumpVolatility)
     return lp;
 }
 
 double logPosterior(VectorXd x,double vbar, const PPath& ppath,const vector<double>& vProxy,double dt){
     double lp = logPrior(x,vbar);
-    HestonPParams P = xToParamsMCMC(x);
+    BatesPParams P = xToParamsMCMC(x);
     double ll = getPathLikelihood(P,ppath,vProxy,dt);
     return ll + lp;  
 }
 
 double logPosterior(VectorXd x,double vbar, const PPath& ppath,double v0_actual,double dt,int N){
     double lp = logPrior(x,vbar);
-    HestonPParams P = xToParamsMCMC(x);
+    BatesPParams P = xToParamsMCMC(x);
     //double ll = getPathLikelihood(P,ppath);
     filterValues f = ParticleFilter(P,v0_actual,ppath,dt,N);
     double ll = f.likelihood;
@@ -178,6 +199,7 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int
     const int d = x0.size();
     mt19937 rng(123);
     double vbar = 0.0;
+    // [TODO] - check, GPT Tells this should be vProxy.size() instead
     for (int i = 0; i < ppath.v.size(); i++) vbar += ppath.v[i];
     vbar = vbar/ppath.v.size();
     double s = 2.0/sqrt((double)d);
@@ -229,21 +251,27 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int
 
 
 
-void chainStatistics(vector<VectorXd>& chain,int burn_in,HestonPParams& meanP,HestonPParams& varP){
+void chainStatistics(vector<VectorXd>& chain,int burn_in,BatesPParams& meanP,BatesPParams& varP){
     double mu_mean = 0.0;
     double kappaP_mean = 0.0;
     double thetaP_mean = 0.0;
     double xi_mean = 0.0;
     double rho_mean = 0.0;
+    double JumpIntensity_mean = 0.0;
+    double JumpMean_mean = 0.0;
+    double JumpVolatility_mean = 0.0;
     
     double mu_var = 0.0;
     double kappaP_var = 0.0;
     double thetaP_var = 0.0;
     double xi_var = 0.0;
     double rho_var = 0.0;
+    double JumpIntensity_var = 0.0;
+    double JumpMean_var = 0.0;
+    double JumpVolatility_var = 0.0;
     
     for (int i = burn_in; i < chain.size();i++){
-        HestonPParams tmp;
+        BatesPParams tmp;
         tmp = xToParamsMCMC(chain[i]);
         mu_mean += tmp.mu;
         mu_var += (tmp.mu * tmp.mu);
@@ -259,34 +287,55 @@ void chainStatistics(vector<VectorXd>& chain,int burn_in,HestonPParams& meanP,He
 
         rho_mean += tmp.rho;
         rho_var += (tmp.rho * tmp.rho);        
+
+        JumpIntensity_mean += tmp.JumpIntensityP;
+        JumpIntensity_var += (tmp.JumpIntensityP * tmp.JumpIntensityP);
+
+        JumpMean_mean += tmp.JumpMeanP;
+        JumpMean_var += (tmp.JumpMeanP * tmp.JumpMeanP); 
+
+        JumpVolatility_mean += tmp.JumpVolatility;
+        JumpVolatility_var += (tmp.JumpVolatility * tmp.JumpVolatility);        
     }
     mu_mean = mu_mean/(chain.size() - burn_in);
     kappaP_mean = kappaP_mean/(chain.size() - burn_in);
     thetaP_mean = thetaP_mean/(chain.size() - burn_in);
     xi_mean = xi_mean/(chain.size() - burn_in);
     rho_mean = rho_mean/(chain.size() - burn_in);
+    JumpIntensity_mean = JumpIntensity_mean/(chain.size() - burn_in);
+    JumpMean_mean = JumpMean_mean/(chain.size() - burn_in);;
+    JumpVolatility_mean = JumpVolatility_mean/(chain.size() - burn_in);;
     
     mu_var = mu_var/(chain.size() - burn_in) - mu_mean * mu_mean;
     kappaP_var = kappaP_var/(chain.size() - burn_in) - kappaP_mean * kappaP_mean;
     thetaP_var = thetaP_var/(chain.size() - burn_in) - thetaP_mean * thetaP_mean;
     xi_var = xi_var/(chain.size() - burn_in) - xi_mean * xi_mean;
     rho_var = rho_var/(chain.size() - burn_in) - rho_mean * rho_mean;
+    JumpIntensity_var = JumpIntensity_var/(chain.size() - burn_in) - JumpIntensity_mean * JumpIntensity_mean;
+    JumpMean_var = JumpMean_var/(chain.size() - burn_in) - JumpMean_mean * JumpMean_mean;
+    JumpVolatility_var = JumpVolatility_var/(chain.size() - burn_in) - JumpVolatility_mean * JumpVolatility_mean;
 
     meanP.mu = mu_mean;
     meanP.kappaP = kappaP_mean;
     meanP.thetaP = thetaP_mean;
     meanP.xi = xi_mean;
     meanP.rho = rho_mean;
+    meanP.JumpIntensityP = JumpIntensity_mean;
+    meanP.JumpMeanP = JumpMean_mean;
+    meanP.JumpVolatility = JumpVolatility_mean;
 
     varP.mu = mu_var;
     varP.kappaP = kappaP_var;
     varP.thetaP = thetaP_var;
     varP.xi = xi_var;
     varP.rho = rho_var;
+    varP.JumpIntensityP = JumpIntensity_var;
+    varP.JumpMeanP = JumpMean_var;
+    varP.JumpVolatility = JumpVolatility_var;
 }
 
 
-void mcmcOverLatent(HestonPParams& P, PPath& ppath, vector<double>& vProxy,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP,int n_iters = 5000){
+void mcmcOverLatent(BatesPParams& P, PPath& ppath, vector<double>& vProxy,VectorXd x0,double dt,BatesPParams& meanP,BatesPParams& varP,int n_iters = 5000){
 
     double logLikelihood = getPathLikelihood(P,ppath,vProxy,dt);
     cout<<"Likelihood for actual P:"<<logLikelihood<<endl;
@@ -315,7 +364,7 @@ void mcmcOverLatent(HestonPParams& P, PPath& ppath, vector<double>& vProxy,Vecto
     
 }
 
-void pmcmcOverLatent(HestonPParams& P, PPath& ppath,VectorXd x0,double dt,HestonPParams& meanP,HestonPParams& varP,int n_iters = 5000,int num_particles = 1500){
+void pmcmcOverLatent(BatesPParams& P, PPath& ppath,VectorXd x0,double dt,BatesPParams& meanP,BatesPParams& varP,int n_iters = 5000,int num_particles = 1500){
 
     //static thread_local std::mt19937 gen(69);
     // double logLikelihood = getPathLikelihood(actualP,ppath);
@@ -342,8 +391,8 @@ void pmcmcOverLatent(HestonPParams& P, PPath& ppath,VectorXd x0,double dt,Heston
     // int num_particles = 1500;
     vector<VectorXd>chain = AdaptiveMetropolis(ppath,x0,n_iters,v0_actual,dt,num_particles); // 5000 --> n_iters (no of MH steps)
     cout<<"chain is built;"<<endl;
-    // HestonPParams meanP;
-    // HestonPParams varP;
+    // BatesPParams meanP;
+    // BatesPParams varP;
     
     chainStatistics(chain,1000,meanP,varP); // 1000 is burn in
     // cout<<meanP<<endl;

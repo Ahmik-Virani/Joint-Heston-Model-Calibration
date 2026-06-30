@@ -2,7 +2,7 @@
 #include <ql/quantlib.hpp>
 
 namespace qe {
-double hestonCallPrice(
+double BatesCallPrice(
     double spot,
     double strike,
     double maturityYears,

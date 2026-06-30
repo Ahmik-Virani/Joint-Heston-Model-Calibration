@@ -15,6 +15,6 @@ namespace qe{
     };
 
     std::ostream& operator<<(std::ostream& os, const PPath& p);
-    PPath logReturns(const HestonPParams& P, Size steps, Size seed);
+    PPath logReturns(const BatesPParams& P, Size steps, Size seed);
 }
 

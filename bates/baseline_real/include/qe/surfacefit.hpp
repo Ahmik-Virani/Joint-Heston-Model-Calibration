@@ -13,7 +13,7 @@ namespace qe{
     using QuantLib::Real;
     using std::vector;
 
-    struct HestonSurfaceFit{
+    struct BatesSurfaceFit{
         Real v0;
         Real kappaQ;
         Real thetaQ;
@@ -21,28 +21,36 @@ namespace qe{
         Real rho;
         Real rmseIv;
         Real maxAbsIvErr;
+
+        Real JumpIntensityQ;
+        Real JumpMeanQ;
+        Real JumpVolatility;
     
     };
-    struct HestonMultiSurfaceFit{
+    struct BatesMultiSurfaceFit{
         Real kappaQ;
         Real thetaQ;
         Real xi;
         Real rho;
         Real TotalSSE;
         vector<Real>v0_by_surface;
+
+        Real JumpIntensityQ;
+        Real JumpMeanQ;
+        Real JumpVolatility;
     };
 
-    HestonSurfaceFit calibrateHestonQVolGrid(CallGrid& grid,HestonSurfaceFit& InitialGuess,const Date& today, const DayCounter& dc,const Calendar& cal);
-    Real MultiSurfaceSSE(CallGrid& grid,HestonMultiSurfaceFit& phi,Real v0_guess,const DayCounter& dc,const Calendar& cal);
-    Real bestv0ForSurface(CallGrid& grid, HestonMultiSurfaceFit& phi,Real v0_guess,const DayCounter& dc, const Calendar& cal);
-    HestonMultiSurfaceFit evaluatePhi(const vector<CallGrid>& surfaces,HestonMultiSurfaceFit& phi,
+    BatesSurfaceFit calibrateBatesQVolGrid(CallGrid& grid,BatesSurfaceFit& InitialGuess,const Date& today, const DayCounter& dc,const Calendar& cal);
+    Real MultiSurfaceSSE(CallGrid& grid,BatesMultiSurfaceFit& phi,Real v0_guess,const DayCounter& dc,const Calendar& cal);
+    Real bestv0ForSurface(CallGrid& grid, BatesMultiSurfaceFit& phi,Real v0_guess,const DayCounter& dc, const Calendar& cal);
+    BatesMultiSurfaceFit evaluatePhi(const vector<CallGrid>& surfaces,BatesMultiSurfaceFit& phi,
         const DayCounter& dc,const Calendar& cal);
-    HestonMultiSurfaceFit MultiSurfaceRandomSearch(const vector<CallGrid>& surfaces,const DayCounter& dc,const Calendar& cal,
-            const HestonMultiSurfaceFit& phi_init,int n_tries);
-            HestonMultiSurfaceFit nedlerMeadMultiSurface(const vector<CallGrid>& surfaces,const DayCounter& dc,
-                const Calendar& cal,const HestonMultiSurfaceFit& phi0);
-    std::ostream& operator<<(std::ostream& os, const HestonSurfaceFit& fit);
-    std::ostream& operator<<(std::ostream& os, const HestonMultiSurfaceFit& fit);
+    BatesMultiSurfaceFit MultiSurfaceRandomSearch(const vector<CallGrid>& surfaces,const DayCounter& dc,const Calendar& cal,
+            const BatesMultiSurfaceFit& phi_init,int n_tries);
+            BatesMultiSurfaceFit nedlerMeadMultiSurface(const vector<CallGrid>& surfaces,const DayCounter& dc,
+                const Calendar& cal,const BatesMultiSurfaceFit& phi0);
+    std::ostream& operator<<(std::ostream& os, const BatesSurfaceFit& fit);
+    std::ostream& operator<<(std::ostream& os, const BatesMultiSurfaceFit& fit);
     
 
 }

@@ -74,7 +74,7 @@ Real impliedVolFromCallPrice(Real CallPrice,Real S0, Real K, Time T, Rate r, Rat
 }
 
 
-// void callgrid(const HestonQParams& Q,CallGrid& grid){
+// void callgrid(const BatesQParams& Q,CallGrid& grid){
 //     if (Q.kappaQ <= 0.0) throw invalid_argument("kappaP must be > 0");
 //     if (Q.thetaQ <= 0.0) throw invalid_argument("thetaP must be > 0");
 //     if (Q.xi < 0.0)      throw invalid_argument("xi must be >= 0");
@@ -92,9 +92,9 @@ Real impliedVolFromCallPrice(Real CallPrice,Real S0, Real K, Time T, Rate r, Rat
 //     Handle<YieldTermStructure> rTS(ext::make_shared<FlatForward>(grid.evalDate, Q.r, Q.dc));
 //     Handle<YieldTermStructure> qTS(ext::make_shared<FlatForward>(grid.evalDate, Q.q, Q.dc));
 
-//     auto process = ext::make_shared<HestonProcess>(rTS,qTS,spot,grid.v0,Q.kappaQ,Q.thetaQ,Q.xi,Q.rho,HestonProcess::QuadraticExponential);
-//     auto model = ext::make_shared<HestonModel>(process);
-//     auto engine =  ext::make_shared<AnalyticHestonEngine>(model);
+//     auto process = ext::make_shared<BatesProcess>(rTS,qTS,spot,grid.v0,Q.kappaQ,Q.thetaQ,Q.xi,Q.rho,BatesProcess::QuadraticExponential);
+//     auto model = ext::make_shared<BatesModel>(process);
+//     auto engine =  ext::make_shared<AnalyticBatesEngine>(model);
 
 //     //vector <vector <Real>> C(grid.maturities.size(),vector<Real> (grid.strikes.size(),0));
 //     grid.C.assign(grid.maturities.size(),vector<Real> (grid.strikes.size(),0));

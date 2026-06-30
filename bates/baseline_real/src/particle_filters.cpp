@@ -28,30 +28,40 @@ double observationLikelihood(double r,double v,double mu,double dt){
     return obsL;
 }
 
-double qLikelihood(const HestonPParams& P,double v,double r,double dt,double new_v){
+double qLikelihood(const BatesPParams& P,double v,double r,double dt,double new_v){
     
     double kappaP = P.kappaP;
     double thetaP = P.thetaP;
     double xi = P.xi;
     double rho = P.rho;
     double mu = P.mu;
+    double JumpIntensityP = P.JumpIntensityP;
+    double JumpMeanP = P.JumpMeanP;
+    double JumpVolatility = P.JumpVolatility;
     double vp = max(v,1e-6);
 
-    double mean = vp + kappaP * (thetaP - vp)*dt + xi*rho*(r - (mu - 0.5*v)*dt);
+    // [TODO] check if these are correct
+    double kappaJ = exp(JumpMeanP + 0.5 * JumpVolatility * JumpVolatility) - 1.0;
+
+    double mean = vp + kappaP * (thetaP - vp)*dt + xi*rho*(r - (mu - 0.5*v - JumpIntensityP * kappaJ)*dt);
     double sd = xi * sqrt(vp*(1 - rho * rho)*dt);
     double qL = logNormal(new_v,mean,sd);
     return qL;
 
 }
 
-double priorLikelihood(const HestonPParams& P,double v,double dt,double new_v){
+double priorLikelihood(const BatesPParams& P,double v,double dt,double new_v){
     double kappaP = P.kappaP;
     double thetaP = P.thetaP;
     double xi = P.xi;
     double rho = P.rho;
     double mu = P.mu;
+    double JumpIntensityP = P.JumpIntensityP;
+    double JumpMeanP = P.JumpMeanP;
+    double JumpVolatility = P.JumpVolatility;
     double vp = max(v,1e-6);
 
+    // [TODO] - check This has to be same
     double mean = vp + kappaP * (thetaP - vp)*dt;
     double sd = xi * sqrt(vp * dt);
     double pL = logNormal(new_v,mean,sd);
@@ -61,7 +71,7 @@ double priorLikelihood(const HestonPParams& P,double v,double dt,double new_v){
 
 
 
-double transitionFunction(const HestonPParams& P, double v,double r, double dt){
+double transitionFunction(const BatesPParams& P, double v,double r, double dt){
     
     static thread_local std::mt19937 gen(std::random_device{}());
     static thread_local std::normal_distribution<double> normal(0.0, 1.0);
@@ -72,7 +82,13 @@ double transitionFunction(const HestonPParams& P, double v,double r, double dt){
     double rho = P.rho;
     double mu = P.mu;
     double vp = max(v,1e-6);
-    double mean = vp + kappaP*(thetaP - vp)*dt + xi * rho * (r - (mu - 0.5*vp) * dt);
+    double JumpIntensityP = P.JumpIntensityP;
+    double JumpMeanP = P.JumpMeanP;
+    double JumpVolatility = P.JumpVolatility;
+
+    // [TODO] - check if this is correct
+    double kappaJ = exp(JumpMeanP + 0.5 * JumpVolatility * JumpVolatility) - 1.0;
+    double mean = vp + kappaP*(thetaP - vp)*dt + xi * rho * (r - (mu - 0.5*vp - JumpIntensityP * kappaJ) * dt);
     double sd = xi * sqrt(vp * dt * (1 - rho*rho));
     double next_v = mean + sd * normal(gen);
     return next_v;  
@@ -107,7 +123,7 @@ vector<int> systematicResample(const vector<double>& W, std::mt19937& gen) {
 }
 
 
-filterValues ParticleFilter(const HestonPParams& P, double v0_actual,const PPath& ppath,double dt,int N){
+filterValues ParticleFilter(const BatesPParams& P, double v0_actual,const PPath& ppath,double dt,int N){
     
     static thread_local std::mt19937 gen(std::random_device{}());
     double eps = 0.5;

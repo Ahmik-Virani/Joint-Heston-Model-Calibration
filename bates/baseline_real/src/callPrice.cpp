@@ -1,3 +1,8 @@
+// writted by codex
+// [TODO] - review
+
+#pragma once
+
 #include <ql/quantlib.hpp>
 #include <algorithm>
 #include <cmath>
@@ -5,7 +10,7 @@
 
 namespace qe {
 
-double hestonCallPrice(
+double batesCallPrice(
     double spot,
     double strike,
     double maturityYears,
@@ -16,6 +21,9 @@ double hestonCallPrice(
     double theta,
     double xi,
     double rho,
+    double jumpIntensity,
+    double jumpMean,
+    double jumpVolatility,
     const QuantLib::Date& evalDate) {
 
     using namespace QuantLib;
@@ -27,7 +35,10 @@ double hestonCallPrice(
         throw std::invalid_argument("maturityYears must be > 0");
     }
     if (!(v0 >= 0.0) || !(kappa > 0.0) || !(theta >= 0.0) || !(xi >= 0.0)) {
-        throw std::invalid_argument("invalid Heston variance parameters");
+        throw std::invalid_argument("invalid Bates variance parameters");
+    }
+    if (!(jumpIntensity >= 0.0) || !(jumpVolatility >= 0.0)) {
+        throw std::invalid_argument("invalid Bates jump parameters");
     }
 
     const double clampedRho = std::clamp(rho, -0.999, 0.999);
@@ -52,11 +63,12 @@ double hestonCallPrice(
     Handle<YieldTermStructure> rTS(ext::make_shared<FlatForward>(today, r, dc));
     Handle<YieldTermStructure> qTS(ext::make_shared<FlatForward>(today, q, dc));
 
-    auto process = ext::make_shared<HestonProcess>(
+    auto process = ext::make_shared<BatesProcess>(
         rTS, qTS, spotHandle,
-        v0, kappa, theta, xi, clampedRho);
-    auto model = ext::make_shared<HestonModel>(process);
-    auto engine = ext::make_shared<AnalyticHestonEngine>(model);
+        v0, kappa, theta, xi, clampedRho,
+        jumpIntensity, jumpMean, jumpVolatility);
+    auto model = ext::make_shared<BatesModel>(process);
+    auto engine = ext::make_shared<BatesEngine>(model);
 
     auto payoff = ext::make_shared<PlainVanillaPayoff>(Option::Call, strike);
     auto exercise = ext::make_shared<EuropeanExercise>(maturityDate);
@@ -64,6 +76,36 @@ double hestonCallPrice(
     option.setPricingEngine(engine);
 
     return option.NPV();
+}
+
+double BatesCallPrice(
+    double spot,
+    double strike,
+    double maturityYears,
+    double r,
+    double q,
+    double v0,
+    double kappa,
+    double theta,
+    double xi,
+    double rho,
+    const QuantLib::Date& evalDate) {
+
+    return batesCallPrice(
+        spot,
+        strike,
+        maturityYears,
+        r,
+        q,
+        v0,
+        kappa,
+        theta,
+        xi,
+        rho,
+        0.10,
+        0.0,
+        0.10,
+        evalDate);
 }
 
 }

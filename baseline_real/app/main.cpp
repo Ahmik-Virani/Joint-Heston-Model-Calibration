@@ -177,8 +177,10 @@ int main() {
 
     int no_of_timesteps = Data.get_time_steps();
 
-    ofstream single_state_calibration_errors("single_state_errors.csv");
+    ofstream single_state_calibration_errors("./Output/single_state_errors.csv");
+    ofstream single_state_calibration_params("./Output/single_state_calibration_params.csv");
     single_state_calibration_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
+    single_state_calibration_params << "date,kappa,theta,vol-of-vol,rho,v0" << '\n';
     for(int t = 0 ; t < no_of_timesteps ; t++){
         CallGrid CalibrationSurface;
         CalibrationSurface.C = Data.get_grid(t);
@@ -209,6 +211,7 @@ int main() {
         }
 
         Data.get_penalty(t, SurfaceFitsParams[best_idx].v0, SurfaceFitsParams[best_idx].kappaQ, SurfaceFitsParams[best_idx].thetaQ, SurfaceFitsParams[best_idx].xi, SurfaceFitsParams[best_idx].rho, single_state_calibration_errors);
+        single_state_calibration_params << Data.get_date(t) << ',' << SurfaceFitsParams[best_idx].kappaQ << ',' << SurfaceFitsParams[best_idx].thetaQ << ',' << SurfaceFitsParams[best_idx].xi << ',' << SurfaceFitsParams[best_idx].rho << ',' << SurfaceFitsParams[best_idx].v0 << '\n';
     }
     // cout << "Initial Guess" <<endl;
     // cout<<SurfaceFitGuesses[best_idx]<<endl;
@@ -217,11 +220,14 @@ int main() {
     // PARAMS.SingleSurfaceParams = SurfaceFitsParams[best_idx];
     // cout << Q << endl;
     single_state_calibration_errors.close();
+    single_state_calibration_params.close();
     // Single Surface Calibration Ends
 
     // Multi Surface Calibration Starts
-    ofstream multi_state_calibration_errors("multi_state_errors.csv");
+    ofstream multi_state_calibration_errors("./Output/multi_state_errors.csv");
+    ofstream multi_state_calibration_params("./Output/multi_state_calibration_params.csv");
     multi_state_calibration_errors << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
+    multi_state_calibration_params << "date,kappa,theta,vol-of-vol,rho,v0" << '\n';
 
     HestonMultiSurfaceFit phi_init;
     phi_init.kappaQ = guess_P[2] + guess_P[5];
@@ -250,6 +256,7 @@ int main() {
 
         for(int i = t ; i < few+t ; i++){
             Data.get_penalty(i, PARAMS.MultSurfaceParams.v0_by_surface[i-t], PARAMS.MultSurfaceParams.kappaQ, PARAMS.MultSurfaceParams.thetaQ, PARAMS.MultSurfaceParams.xi, PARAMS.MultSurfaceParams.rho, multi_state_calibration_errors);
+            multi_state_calibration_params << Data.get_date(i-t) << ',' << PARAMS.MultSurfaceParams.kappaQ << ',' << PARAMS.MultSurfaceParams.thetaQ << ',' << PARAMS.MultSurfaceParams.xi << ',' << PARAMS.MultSurfaceParams.rho << ',' << PARAMS.MultSurfaceParams.v0_by_surface[i-t] << '\n';
         }
     }
 
@@ -264,9 +271,14 @@ int main() {
     // cout << Q << endl;
     // cout<<"\n";
     multi_state_calibration_errors.close();
+    multi_state_calibration_params.close();
     // Multi Surface Calibration Ends
     
     //GARCH Calibration Starts
+    // [TODO] - print P space errors
+    ofstream garch_calibration_params("./Output/garch_calibration_params.csv");
+    garch_calibration_params << "date,mu_mean,mu_var,kappa_mean,kappa_var,theta_mean,theta_var,vol-of-vol_mean,vol-of-vol_var,rho_mean,rho_var" << '\n';
+
     cout<<"Garch Calibration Started."<<endl;
     double dt = 1/double(steps);
     int n_iters = 5000;
@@ -330,8 +342,11 @@ int main() {
         PARAMS.meanP_garch_mcmc = meanP;
         PARAMS.varP_garch_mcmc = varP;
 
+        // [TODO] - check if end_t or end_t+1
+        garch_calibration_params << Data.get_date(end_t) << ',' << meanP.mu << ',' << varP.mu << ',' << meanP.kappaP << ',' << varP.kappaP << ',' << meanP.thetaP << ',' << varP.thetaP << ',' << meanP.xi << ',' << varP.xi << meanP.rho << ',' << varP.rho << ',' << '\n';
     }
 
+    // [TODO] - can this be rolling window also?
     else{
         for(int end_t = starting_steps; end_t < no_of_timesteps; end_t ++){
             PPath ppath = buildExpandingPath(Data, end_t);
@@ -379,12 +394,21 @@ int main() {
             cout<<"Variance Statistics:"<<varP<<endl;
             PARAMS.meanP_garch_mcmc = meanP;
             PARAMS.varP_garch_mcmc = varP;
+
+            // [TODO] - same as before
+            garch_calibration_params << Data.get_date(end_t) << ',' << meanP.mu << ',' << varP.mu << ',' << meanP.kappaP << ',' << varP.kappaP << ',' << meanP.thetaP << ',' << varP.thetaP << ',' << meanP.xi << ',' << varP.xi << meanP.rho << ',' << varP.rho << ',' << '\n';
         }
     }
+
     
+    garch_calibration_params.close();
     //GARCH Calibration Ends
 
     //PMCMC Calibration Starts
+    // [TODO] - print P space errors
+    ofstream pmcmc_calibration_params("./Output/pmcmc_calibration_params.csv");
+    pmcmc_calibration_params << "date,mu_mean,mu_var,kappa_mean,kappa_var,theta_mean,theta_var,vol-of-vol_mean,vol-of-vol_var,rho_mean,rho_var" << '\n';
+
     if(starting_steps >= no_of_timesteps){
         const int end_t = no_of_timesteps - 1;
         PPath ppath = buildExpandingPath(Data, end_t);
@@ -441,6 +465,9 @@ int main() {
 
         PARAMS.meanP_pmcmc = meanP_pmcmc;
         PARAMS.varP_pmcmc = varP_pmcmc;
+
+        // [TODO] - same end_t
+        pmcmc_calibration_params << Data.get_date(end_t) << ',' << meanP_pmcmc.mu << ',' << varP_pmcmc.mu << ',' << meanP_pmcmc.kappaP << ',' << varP_pmcmc.kappaP << ',' << meanP_pmcmc.thetaP << ',' << varP_pmcmc.thetaP << ',' << meanP_pmcmc.xi << ',' << varP_pmcmc.xi << meanP_pmcmc.rho << ',' << varP_pmcmc.rho << ',' << '\n';
 
     }
     else{
@@ -499,9 +526,13 @@ int main() {
 
             PARAMS.meanP_pmcmc = meanP_pmcmc;
             PARAMS.varP_pmcmc = varP_pmcmc;
+
+            // [TODO] - same end_t
+            pmcmc_calibration_params << Data.get_date(end_t) << ',' << meanP_pmcmc.mu << ',' << varP_pmcmc.mu << ',' << meanP_pmcmc.kappaP << ',' << varP_pmcmc.kappaP << ',' << meanP_pmcmc.thetaP << ',' << varP_pmcmc.thetaP << ',' << meanP_pmcmc.xi << ',' << varP_pmcmc.xi << meanP_pmcmc.rho << ',' << varP_pmcmc.rho << ',' << '\n';
         }
     }
 
+    pmcmc_calibration_params.close();
     //PMCMC Calibration Ends
     // cout<<"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"<<endl;
     // cout<<"Final Prints"<<endl;

@@ -481,12 +481,12 @@ public:
 
         // Initialization is done by the constructor 
         
-        ofstream error_file("Errors.csv");
+        ofstream error_file("./Output/Errors.csv");
         error_file << "date,strike,maturity,true_price,computed_price,abs_error" << '\n';
-        ofstream log_file("smooth_calibration.log");
-        ofstream statistical_file("statistics.log");
-        ofstream statistical_csv("parameters.csv");
-        statistical_csv << "mu,vol-of-vol,kappa,theta,rho,lambda,v_t" << '\n';
+        ofstream log_file("./Output/smooth_calibration.log");
+        ofstream statistical_file("./Output/statistics.log");
+        ofstream statistical_csv("./Output/parameters.csv");
+        statistical_csv << "date,mu_mean,mu_var,vol-of-vol_mean,vol-of-vol_var,kappa_mean,kappa_var,theta_mean,theta_var,rho_mean,rho_var,lambda_mean,lambda_var,v_t_mean,v_t_var" << '\n';
         for(int t = 1 ; t < time_steps ; t++){
             log_file << "Time: " << t << '\n';
     
@@ -549,9 +549,10 @@ public:
 
             vector<pair<double, double>> mean_variance = compute_mean_and_variance();
             statistical_file << "Time " << t << '\n';
+            statistical_csv << data.get_date(t) << ',';
             for(int i = 0 ; i < 7 ; i++){
                 statistical_file << index_to_name[i] << ": mean=" << mean_variance[i].first << ", variance=" << mean_variance[i].second << '\n';
-                statistical_csv << mean_variance[i].first << ',';
+                statistical_csv << mean_variance[i].first << ',' << mean_variance[i].second << ',';
             }
             statistical_csv << '\n';
             statistical_file << "-----------------------------------------------\n";
@@ -610,7 +611,7 @@ public:
 
         // At the end just get the final value of the parameters
         auto final_mean_and_variance = compute_mean_and_variance();
-        ofstream final_mean("calibrated_params.csv");
+        ofstream final_mean("./Output/calibrated_params.csv");
 
         int ctr = 0;
         for(auto [u, v] : final_mean_and_variance){
@@ -633,7 +634,7 @@ public:
         final_mean.close();
 
         // file to write sampled paths
-        ofstream sampled_paths("sampled_paths.csv");
+        ofstream sampled_paths("./Output/sampled_paths.csv");
 
         // Call ancestral sampling
         for(int i = 0 ; i < number_of_samples ; i++){

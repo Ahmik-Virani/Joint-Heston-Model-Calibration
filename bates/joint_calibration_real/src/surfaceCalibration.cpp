@@ -29,7 +29,7 @@ private:
 
     
     // [TODO] - check if these conversions are correct
-    vector<double> P_to_Q(const vector<double> &particle){
+    vector<double> P_to_Q(const vector<double> &particle) const {
         vector<double> Q_space_params = particle;
         Q_space_params[2] = particle[2] + particle[5];
         Q_space_params[3] = (particle[2] * particle[3]) / (particle[2] + particle[5] + 1e-8);
@@ -264,7 +264,6 @@ class surfaceCalibrationLaplacian {
             return params;
         }
 
-        // [TODO] - Arka
         Eigen::MatrixXd make_original_covariance(Eigen::MatrixXd covariance_u,const vector<double> &unconstrained_params) const{
             Eigen::MatrixXd G = Eigen::MatrixXd::Zero(11, 11);
             G(0,0) = 1.0;

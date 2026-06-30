@@ -215,6 +215,10 @@ public:
         return {parseDate(index_to_date_and_hour[i].first), index_to_date_and_hour[i].second};
     }
 
+    QuantLib::Date get_date(int i){
+        return parseDate(index_to_date_and_hour[i].first);
+    }
+
     // a function which takes in heston parameters at time t
     // and checks how will they fit the current grid
     // it returns the error

@@ -150,11 +150,6 @@ int main() {
     calParams PARAMS;
 
 
-    // Single Surface Calibration Starts
-    // CallGrid CalibrationSurface = surfaces[10]; // or any surfaces[i]
-    // cout << "The grid chosen to be calibrated is:"<<endl;
-    // print_Callgrid(CalibrationSurface);
-
     int repeat_cal = 10;
     vector<HestonSurfaceFit>SurfaceFitsParams;
     vector<HestonSurfaceFit>SurfaceFitGuesses;
@@ -163,11 +158,6 @@ int main() {
     mt19937 gen(rd());               // Mersenne Twister RNG
     Real eps = 0.5;
 
-    // uniform_real_distribution<> dist_v0(CalibrationSurface.v0 * (1-eps), CalibrationSurface.v0 * (1+eps));
-    // uniform_real_distribution<> dist_kappaQ(Q.kappaQ * (1-eps), Q.kappaQ * (1+eps));
-    // uniform_real_distribution<> dist_thetaQ(Q.thetaQ * (1-eps), Q.thetaQ * (1+eps));
-    // uniform_real_distribution<> dist_xi(Q.xi * (1-eps), Q.xi * (1+eps));
-    // uniform_real_distribution<> dist_rho(max(-0.95, Q.rho - 0.4),min(-0.05, Q.rho + 0.4));
     
     int best_idx = -1;
     Real best_rmseIv = 10000;    
@@ -213,15 +203,10 @@ int main() {
         Data.get_penalty(t, SurfaceFitsParams[best_idx].v0, SurfaceFitsParams[best_idx].kappaQ, SurfaceFitsParams[best_idx].thetaQ, SurfaceFitsParams[best_idx].xi, SurfaceFitsParams[best_idx].rho, single_state_calibration_errors);
         single_state_calibration_params << Data.get_date(t) << ',' << SurfaceFitsParams[best_idx].kappaQ << ',' << SurfaceFitsParams[best_idx].thetaQ << ',' << SurfaceFitsParams[best_idx].xi << ',' << SurfaceFitsParams[best_idx].rho << ',' << SurfaceFitsParams[best_idx].v0 << '\n';
     }
-    // cout << "Initial Guess" <<endl;
-    // cout<<SurfaceFitGuesses[best_idx]<<endl;
-    // cout << "Final Parameters" <<endl;
-    // cout<<SurfaceFitsParams[best_idx]<<endl;
-    // PARAMS.SingleSurfaceParams = SurfaceFitsParams[best_idx];
-    // cout << Q << endl;
+
     single_state_calibration_errors.close();
     single_state_calibration_params.close();
-    // Single Surface Calibration Ends
+    cout<<"Single Surface Calibration Ends"<<endl;
 
     // Multi Surface Calibration Starts
     ofstream multi_state_calibration_errors("./Output/multi_state_errors.csv");
@@ -272,6 +257,7 @@ int main() {
     // cout<<"\n";
     multi_state_calibration_errors.close();
     multi_state_calibration_params.close();
+    cout<<"Multi Surface Calibration Ends"<<endl;
     // Multi Surface Calibration Ends
     
     //GARCH Calibration Starts
@@ -402,6 +388,7 @@ int main() {
 
     
     garch_calibration_params.close();
+    cout<<"GARCH Calibration Ends"<<endl;
     //GARCH Calibration Ends
 
     //PMCMC Calibration Starts
@@ -533,6 +520,7 @@ int main() {
     }
 
     pmcmc_calibration_params.close();
+    cout<<"PMCMC Calibration Ends"<<endl;
     //PMCMC Calibration Ends
     // cout<<"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"<<endl;
     // cout<<"Final Prints"<<endl;

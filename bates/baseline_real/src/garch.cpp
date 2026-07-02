@@ -7,6 +7,7 @@
 #include <Eigen/Core>
 #include <LBFGS.h>
 #include <iomanip>
+#include <limits>
 #include "qe/garch.hpp"
 #include "qe/path.hpp"
 
@@ -69,10 +70,11 @@ double getNLL(GarchParams& params,PPath& ppath){
     int n = ppath.returns.size();
     if (ppath.returns[n-1] == 0.0) n = n - 1;
     
-    if (params.omega < 0) throw invalid_argument("Omega must be grater than 0");
-    if (params.alpha < 0) throw invalid_argument("Alpha must be grater than 0");
-    if (params.beta < 0) throw invalid_argument("Beta must be grater than 0");
-    if (params.alpha + params.beta > 1.0) throw invalid_argument("Alpha + Beta must be less than 1");
+    if (!isfinite(params.omega) || !isfinite(params.alpha) || !isfinite(params.beta) ||
+        !(params.omega > 0.0) || params.alpha < 0.0 || params.beta < 0.0 ||
+        params.alpha + params.beta >= 1.0) {
+        return numeric_limits<double>::infinity();
+    }
     
     double mu = params.mu;
     double omega = params.omega;
@@ -82,7 +84,7 @@ double getNLL(GarchParams& params,PPath& ppath){
     double nll = 0.0;
     // cout << "HI ------------------------------\n";
     // cout << omega << endl;
-    if(!(h0 > 1e-16) || !isfinite(h0)) throw invalid_argument("h0 is infinite.");
+    if(!(h0 > 1e-16) || !isfinite(h0)) return numeric_limits<double>::infinity();
     
     double t_h = h0;
 
@@ -102,11 +104,21 @@ GarchParams xToParams(const VectorXd& x){
     GarchParams initParams;
     initParams.mu = x[0];
     initParams.omega = exp(x[1]);
-    double a = exp(x[2]);
-    double b = exp(x[3]);
-    double denom = 1 + a + b;
+    double m = max(0.0, max(x[2], x[3]));
+    double base = exp(-m);
+    double a = exp(x[2] - m);
+    double b = exp(x[3] - m);
+    double denom = base + a + b;
     initParams.alpha = a/denom;
     initParams.beta = b/denom;
+
+    const double maxPersistence = 0.995;
+    double persistence = initParams.alpha + initParams.beta;
+    if (persistence >= maxPersistence) {
+        double scale = maxPersistence / persistence;
+        initParams.alpha *= scale;
+        initParams.beta *= scale;
+    }
     return initParams;
 }
 
@@ -178,13 +190,15 @@ GarchParams garchPathFit(PPath& ppath){
    
     double init_mu = 0;
     double init_var = 0;
-    // [TODO] - check if using 1 is fine
-    for(int i = 1; i < ppath.returns.size() - 1; i++){
+    int n = ppath.returns.size();
+    if (n > 0 && ppath.returns[n - 1] == 0.0) n = n - 1;
+
+    for(int i = 0; i < n; i++){
         init_mu += ppath.returns[i];
         init_var += (ppath.returns[i] * ppath.returns[i]);
     }
-    init_mu = init_mu/(ppath.returns.size() - 1);
-    init_var = init_var/(ppath.returns.size() - 1) - init_mu * init_mu; 
+    init_mu = init_mu/n;
+    init_var = init_var/n - init_mu * init_mu; 
 
     // cout<<"Initial Mu:"<<init_mu<<endl;
     // cout<<"Initial Var:"<<init_var<<endl;
@@ -209,10 +223,20 @@ GarchParams garchPathFit(PPath& ppath){
     
     LBFGSpp::LBFGSSolver<double> solver(optParam);
     double fx = 0.0;
-    int niter = solver.minimize(garchobj,x,fx);
+    try {
+        int niter = solver.minimize(garchobj,x,fx);
+        (void)niter;
+    }
+    catch (const std::exception& e) {
+        cerr << "GARCH optimizer warning: " << e.what()
+             << "; using current parameter estimate." << endl;
+    }
     // cout<<"After optimization:"<<endl;
     // cout<<"Mu:"<<x[0] << "\n" << "Omega:" << x[1] << "\n" << "Alpha:" << x[2] << "\n" << "Beta:" << x[3] << "\n"; 
     GarchParams gParams = xToParams(x);
+    if (!isfinite(getNLL(gParams, ppath))) {
+        return initGuess;
+    }
     //cout<<gParams<<endl;
     //vector<double>hPath = getGarchPath(gParams,ppath);
     //cout<<"v path length:"<<ppath.v.size()<<endl;

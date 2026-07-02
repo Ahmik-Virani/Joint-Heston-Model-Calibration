@@ -267,7 +267,7 @@ private:
             for(int j = 0; j < 7; j++) {
                 particles[p][j] = sample(j);
             }
-    
+            
             particles[p][1] = max(particles[p][1], 1e-8);
             particles[p][2] = max(particles[p][2], 1e-8);
             particles[p][3] = max(particles[p][3], 1e-8);
@@ -399,8 +399,11 @@ public:
         v_value.resize(time_steps + 1, vector<double> (N));
 
         // Initialize all the particles with values of heston parameters based on surface calibration
+        cout<<"Initial Particle Assignment \n";
         max_likelihood_map.assign(N,-1);
         for(int i = 0 ; i < N ; i++){
+            cout<<"Initialisation:"
+                << i + 1 << endl;
             initialization(i, 0);
 
             // Do the book keeping

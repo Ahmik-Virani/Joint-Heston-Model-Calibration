@@ -158,9 +158,9 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const vector<double>& v
         if (log(alpha_uniform) < (logpnew - logp)){
             x = xnew;
             logp = logpnew;
-            chain.push_back(x);
             accepted ++;
         }
+        chain.push_back(x);
         if (it >= adapt_start){
             VectorXd x_it = x;
             VectorXd delta = x_it - mean;
@@ -213,9 +213,9 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int
         if (log(alpha_uniform) < (logpnew - logp)){
             x = xnew;
             logp = logpnew;
-            chain.push_back(x);
             accepted ++;
         }
+        chain.push_back(x);
         if (it >= adapt_start){
             VectorXd x_it = x;
             VectorXd delta = x_it - mean;

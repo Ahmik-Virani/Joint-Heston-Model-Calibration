@@ -146,7 +146,12 @@ public:
 
             QuantLib::Date this_date = parseDate(date);
             QuantLib::Date this_expiry = parseDate(Expiry);
+
             Size tradingDays = calendar.businessDaysBetween(this_date, this_expiry);
+            if (tradingDays <= 0) {
+                not_working++;
+                continue;
+            }
             
             // [TODO] - check if this or trading days
             // testing with calendar days

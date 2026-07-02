@@ -12,7 +12,8 @@
 #include <ql/time/date.hpp>
 #include <ql/time/daycounters/actual365fixed.hpp>
 
-#include "callPrice.cpp"
+#include "qe/callPrice.hpp"
+#include "qe/surface.hpp"
 
 using namespace std;
 using namespace QuantLib;

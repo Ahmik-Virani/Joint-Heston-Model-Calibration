@@ -145,9 +145,10 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const vector<double>& v
     const int d = x0.size();
     mt19937 rng(123);
     double vbar = 0.0;
-    for (int i = 0; i < ppath.v.size(); i++) vbar += vProxy[i];
+    if (vProxy.empty()) throw invalid_argument("Variance proxy path cannot be empty.");
+    for (double v : vProxy) vbar += v;
 
-    vbar = vbar/ppath.v.size();
+    vbar = vbar / static_cast<double>(vProxy.size());
     double s = 2.0/sqrt((double)d);
     MatrixXd C = MatrixXd::Identity(d,d);
     VectorXd x = x0;
@@ -172,9 +173,9 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const vector<double>& v
         if (log(alpha_uniform) < (logpnew - logp)){
             x = xnew;
             logp = logpnew;
-            chain.push_back(x);
             accepted ++;
         }
+        chain.push_back(x);
         if (it >= adapt_start){
             VectorXd x_it = x;
             VectorXd delta = x_it - mean;
@@ -195,13 +196,13 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const vector<double>& v
 }
 
 
-vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int n_iters, double v0_actual,double dt,int num_particles,int adapt_start = 1000, int adapt_every = 50,double jitter = 1e-5){
+vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int n_iters, double v0_actual,double vbar_prior,double dt,int num_particles,int adapt_start = 1000, int adapt_every = 50,double jitter = 1e-5){
     const int d = x0.size();
     mt19937 rng(123);
-    double vbar = 0.0;
-    // [TODO] - check, GPT Tells this should be vProxy.size() instead
-    for (int i = 0; i < ppath.v.size(); i++) vbar += ppath.v[i];
-    vbar = vbar/ppath.v.size();
+    if (!(vbar_prior > 0.0) || !isfinite(vbar_prior)) {
+        throw invalid_argument("PMCMC variance prior anchor must be positive and finite.");
+    }
+    double vbar = vbar_prior;
     double s = 2.0/sqrt((double)d);
     MatrixXd C = MatrixXd::Identity(d,d);
     VectorXd x = x0;
@@ -227,9 +228,9 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int
         if (log(alpha_uniform) < (logpnew - logp)){
             x = xnew;
             logp = logpnew;
-            chain.push_back(x);
             accepted ++;
         }
+        chain.push_back(x);
         if (it >= adapt_start){
             VectorXd x_it = x;
             VectorXd delta = x_it - mean;
@@ -252,6 +253,10 @@ vector <VectorXd> AdaptiveMetropolis(const PPath& ppath, const VectorXd& x0, int
 
 
 void chainStatistics(vector<VectorXd>& chain,int burn_in,BatesPParams& meanP,BatesPParams& varP){
+    if (chain.empty()) throw invalid_argument("Cannot summarize an empty MCMC chain.");
+    burn_in = min<int>(burn_in, static_cast<int>(chain.size()) - 1);
+    const int sample_count = static_cast<int>(chain.size()) - burn_in;
+
     double mu_mean = 0.0;
     double kappaP_mean = 0.0;
     double thetaP_mean = 0.0;
@@ -297,23 +302,23 @@ void chainStatistics(vector<VectorXd>& chain,int burn_in,BatesPParams& meanP,Bat
         JumpVolatility_mean += tmp.JumpVolatility;
         JumpVolatility_var += (tmp.JumpVolatility * tmp.JumpVolatility);        
     }
-    mu_mean = mu_mean/(chain.size() - burn_in);
-    kappaP_mean = kappaP_mean/(chain.size() - burn_in);
-    thetaP_mean = thetaP_mean/(chain.size() - burn_in);
-    xi_mean = xi_mean/(chain.size() - burn_in);
-    rho_mean = rho_mean/(chain.size() - burn_in);
-    JumpIntensity_mean = JumpIntensity_mean/(chain.size() - burn_in);
-    JumpMean_mean = JumpMean_mean/(chain.size() - burn_in);;
-    JumpVolatility_mean = JumpVolatility_mean/(chain.size() - burn_in);;
+    mu_mean = mu_mean/sample_count;
+    kappaP_mean = kappaP_mean/sample_count;
+    thetaP_mean = thetaP_mean/sample_count;
+    xi_mean = xi_mean/sample_count;
+    rho_mean = rho_mean/sample_count;
+    JumpIntensity_mean = JumpIntensity_mean/sample_count;
+    JumpMean_mean = JumpMean_mean/sample_count;
+    JumpVolatility_mean = JumpVolatility_mean/sample_count;
     
-    mu_var = mu_var/(chain.size() - burn_in) - mu_mean * mu_mean;
-    kappaP_var = kappaP_var/(chain.size() - burn_in) - kappaP_mean * kappaP_mean;
-    thetaP_var = thetaP_var/(chain.size() - burn_in) - thetaP_mean * thetaP_mean;
-    xi_var = xi_var/(chain.size() - burn_in) - xi_mean * xi_mean;
-    rho_var = rho_var/(chain.size() - burn_in) - rho_mean * rho_mean;
-    JumpIntensity_var = JumpIntensity_var/(chain.size() - burn_in) - JumpIntensity_mean * JumpIntensity_mean;
-    JumpMean_var = JumpMean_var/(chain.size() - burn_in) - JumpMean_mean * JumpMean_mean;
-    JumpVolatility_var = JumpVolatility_var/(chain.size() - burn_in) - JumpVolatility_mean * JumpVolatility_mean;
+    mu_var = mu_var/sample_count - mu_mean * mu_mean;
+    kappaP_var = kappaP_var/sample_count - kappaP_mean * kappaP_mean;
+    thetaP_var = thetaP_var/sample_count - thetaP_mean * thetaP_mean;
+    xi_var = xi_var/sample_count - xi_mean * xi_mean;
+    rho_var = rho_var/sample_count - rho_mean * rho_mean;
+    JumpIntensity_var = JumpIntensity_var/sample_count - JumpIntensity_mean * JumpIntensity_mean;
+    JumpMean_var = JumpMean_var/sample_count - JumpMean_mean * JumpMean_mean;
+    JumpVolatility_var = JumpVolatility_var/sample_count - JumpVolatility_mean * JumpVolatility_mean;
 
     meanP.mu = mu_mean;
     meanP.kappaP = kappaP_mean;
@@ -389,7 +394,7 @@ void pmcmcOverLatent(BatesPParams& P, PPath& ppath,VectorXd x0,double dt,BatesPP
     double v0_actual = P.v0;
     // int n_iters = 5000;
     // int num_particles = 1500;
-    vector<VectorXd>chain = AdaptiveMetropolis(ppath,x0,n_iters,v0_actual,dt,num_particles); // 5000 --> n_iters (no of MH steps)
+    vector<VectorXd>chain = AdaptiveMetropolis(ppath,x0,n_iters,v0_actual,P.thetaP,dt,num_particles); // 5000 --> n_iters (no of MH steps)
     cout<<"chain is built;"<<endl;
     // BatesPParams meanP;
     // BatesPParams varP;
@@ -399,6 +404,4 @@ void pmcmcOverLatent(BatesPParams& P, PPath& ppath,VectorXd x0,double dt,BatesPP
     // cout<<varP<<endl;
 }
 }//namespace qe;
-
-
 

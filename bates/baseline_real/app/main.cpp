@@ -223,6 +223,7 @@ int main() {
     // cout << Q << endl;
     single_state_calibration_errors.close();
     single_state_calibration_params.close();
+    cout<<"Single Surface Calibration Done."<<endl;
     // Single Surface Calibration Ends
 
     // Multi Surface Calibration Starts
@@ -278,6 +279,7 @@ int main() {
     // cout<<"\n";
     multi_state_calibration_errors.close();
     multi_state_calibration_params.close();
+    cout<<"Multi Surface Calibration Done."<<endl;
     // Multi Surface Calibration Ends
     
     //GARCH Calibration Starts
@@ -316,7 +318,7 @@ int main() {
             annual_hPath[i] = daily_hPath[i] * steps;
         }
 
-        VectorXd x0(9);
+        VectorXd x0(8);
 
         uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
         uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
@@ -358,9 +360,9 @@ int main() {
         x0[3] = log(xi0);
         x0[4] = atanh(rho0);
         // [TODO] - check if fine
-        x0[6] = log(JumpIntensityP0);
-        x0[7] = JumpMeanP0;
-        x0[8] = log(JumpVolatility0);
+        x0[5] = log(JumpIntensityP0);
+        x0[6] = JumpMeanP0;
+        x0[7] = log(JumpVolatility0);
 
 
         BatesPParams meanP,varP;
@@ -388,7 +390,7 @@ int main() {
             for (int i = 0; i < static_cast<int>(daily_hPath.size()); i++) {
                 annual_hPath[i] = daily_hPath[i] * steps;
             }
-            VectorXd x0(9);
+            VectorXd x0(8);
 
             uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
             uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
@@ -430,9 +432,9 @@ int main() {
             x0[3] = log(xi0);
             x0[4] = atanh(rho0);
             // [TODO] - check if fine
-            x0[6] = log(JumpIntensityP0);
-            x0[7] = JumpMeanP0;
-            x0[8] = log(JumpVolatility0);
+            x0[5] = log(JumpIntensityP0);
+            x0[6] = JumpMeanP0;
+            x0[7] = log(JumpVolatility0);
 
             BatesPParams meanP,varP;
             vector<double>vProxy = annual_hPath;
@@ -449,6 +451,7 @@ int main() {
 
     
     garch_calibration_params.close();
+    cout<<"GARCH Surface Calibration Done."<<endl;
 
     // for(int i = prev_path_steps ; i < no_of_timesteps ; i++){
     //     PPath ppath;
@@ -543,7 +546,7 @@ int main() {
     if(starting_steps >= no_of_timesteps){
         const int end_t = no_of_timesteps - 1;
         PPath ppath = buildExpandingPath(Data, end_t);
-        VectorXd x0(9);
+        VectorXd x0(8);
 
         uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
         uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
@@ -585,9 +588,9 @@ int main() {
         x0[3] = log(xi0);
         x0[4] = atanh(rho0);
         // [TODO] - check if fine
-        x0[6] = log(JumpIntensityP0);
-        x0[7] = JumpMeanP0;
-        x0[8] = log(JumpVolatility0);   
+        x0[5] = log(JumpIntensityP0);
+        x0[6] = JumpMeanP0;
+        x0[7] = log(JumpVolatility0);   
 
         BatesPParams meanP_pmcmc,varP_pmcmc;
         pmcmcOverLatent(P,ppath,x0,dt,meanP_pmcmc,varP_pmcmc,n_iters,num_particles);
@@ -620,7 +623,7 @@ int main() {
     else{
         for(int end_t = starting_steps; end_t < no_of_timesteps; end_t ++){
             PPath ppath = buildExpandingPath(Data, end_t);
-            VectorXd x0(9);
+            VectorXd x0(8);
 
             uniform_real_distribution<> dist_mu(guess_P[0] * (1-eps), guess_P[0] * (1+eps));
             uniform_real_distribution<> dist_kappaP(guess_P[2] * (1-eps), guess_P[2] * (1+eps));
@@ -662,9 +665,9 @@ int main() {
             x0[3] = log(xi0);
             x0[4] = atanh(rho0);
             // [TODO] - check if fine
-            x0[6] = log(JumpIntensityP0);
-            x0[7] = JumpMeanP0;
-            x0[8] = log(JumpVolatility0);
+            x0[5] = log(JumpIntensityP0);
+            x0[6] = JumpMeanP0;
+            x0[7] = log(JumpVolatility0);
 
             BatesPParams meanP_pmcmc,varP_pmcmc;
             pmcmcOverLatent(P,ppath,x0,dt,meanP_pmcmc,varP_pmcmc,n_iters,num_particles);
@@ -696,6 +699,7 @@ int main() {
     }
 
     pmcmc_calibration_params.close();
+    cout<<"PMCMC Calibration Done."<<endl;
     
     // for(int i = prev_path_steps ; i < no_of_timesteps ; i++){
     //     PPath ppath;
@@ -787,4 +791,3 @@ int main() {
 
     return 0;
 }
-

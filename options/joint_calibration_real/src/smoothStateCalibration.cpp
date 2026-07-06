@@ -20,7 +20,7 @@
 
 using namespace std;
 // From joint_calibration_real:
-// g++ -std=c++17 app/main.cpp -I/data1/sandesh/local/include -I../../eigen-3.4.0 -IQuantLib -Iinclude -L/data1/sandesh/local/lib -lQuantLib -Wl,-rpath,/data1/sandesh/local/lib -pthread -o run_main && ./run_main
+// g++ -std=c++17 app/main.cpp -I/data1/sandesh/local/include -I../../../eigen-3.4.0 -IQuantLib -Iinclude -L/data1/sandesh/local/lib -lQuantLib -Wl,-rpath,/data1/sandesh/local/lib -pthread -o run_main && ./run_main
 class smoothStateCalibration {
 private:
     getRealData data;

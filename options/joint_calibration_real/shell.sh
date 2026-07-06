@@ -5,7 +5,7 @@ g++ -std=c++17 ./app/main.cpp \
     -I/opt/homebrew/include \
     -I/opt/homebrew/include/eigen3 \
     -I/usr/local/include/eigen3 \
-    -I../../eigen-3.4.0 \
+    -I../../../eigen-3.4.0 \
     -Iinclude \
     -L/usr/local/lib \
     -L/opt/homebrew/lib \

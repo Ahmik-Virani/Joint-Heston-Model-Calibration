@@ -1,0 +1,45 @@
+Bates Single State Errors
+=========================
+
+Overall
+             value
+MAE       5.588452
+Median AE 5.882365
+RMSE      6.019824
+Max AE    9.816080
+
+Moneyness Metrics
+               MAE  Median AE     RMSE  count
+Moneyness                                    
+ATM       6.245281   6.543290 6.451578     55
+ITM       3.682167   3.067330 4.799163     22
+OTM       5.865246   5.419610 5.997585     21
+
+Date-Hour Metrics Summary
+                          value
+Average Date-Hour MAE  6.155979
+Median Date-Hour MAE   6.245915
+Average Date-Hour RMSE 6.378604
+
+Bates Multi State Errors
+========================
+
+Overall
+              value
+MAE        1.658468
+Median AE  0.585092
+RMSE       2.987651
+Max AE    11.107500
+
+Moneyness Metrics
+               MAE  Median AE     RMSE  count
+Moneyness                                    
+ATM       0.882680   0.600599 1.218935     55
+ITM       4.698277   5.212995 5.952664     22
+OTM       0.505735   0.378035 0.801255     21
+
+Date-Hour Metrics Summary
+                          value
+Average Date-Hour MAE  1.341408
+Median Date-Hour MAE   0.747843
+Average Date-Hour RMSE 1.653348

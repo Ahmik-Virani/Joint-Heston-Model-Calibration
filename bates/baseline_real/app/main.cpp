@@ -288,7 +288,7 @@ int main() {
 
     // [TODO] - print P space errors
     ofstream garch_calibration_params("./Output/garch_calibration_params.csv");
-    garch_calibration_params << "date,mu_mean,mu_var,kappa_mean,kappa_var,theta_mean,theta_var,vol-of-vol_mean,vol-of-vol_var,rho_mean,rho_var,JumpIntensity_mean,JumpIntensity_var,JumpMean_mean,JumpMean_var,JumpVolatility_mean,JumpVolatility_var" << '\n';
+    garch_calibration_params << "date,mu_mean,mu_var,kappa_mean,kappa_var,theta_mean,theta_var,vol-of-vol_mean,vol-of-vol_var,rho_mean,rho_var,vproxy" << '\n';
 
     // number of time stamps required
     // [TODO] - tune
@@ -445,7 +445,7 @@ int main() {
             PARAMS.varP_garch_mcmc = varP;
 
             // [TODO] - same as before
-            garch_calibration_params << Data.get_date(end_t) << ',' << meanP.mu << ',' << varP.mu << ',' << meanP.kappaP << ',' << varP.kappaP << ',' << meanP.thetaP << ',' << varP.thetaP << ',' << meanP.xi << ',' << varP.xi << meanP.rho << ',' << varP.JumpMeanP << ',' << meanP.JumpIntensityP << ',' << varP.JumpIntensityP << ',' << meanP.JumpMeanP << ',' << varP.JumpMeanP << ',' << meanP.JumpVolatility << ',' << varP.JumpVolatility << '\n';
+            garch_calibration_params << Data.get_date(end_t) << ',' << meanP.mu << ',' << varP.mu << ',' << meanP.kappaP << ',' << varP.kappaP << ',' << meanP.thetaP << ',' << varP.thetaP << ',' << meanP.xi << ',' << varP.xi << ','<< meanP.rho << ',' << varP.rho << ',' << vProxy.back() << '\n';
         }
     }
 
@@ -541,7 +541,7 @@ int main() {
 
     // [TODO] - print P space errors
     ofstream pmcmc_calibration_params("./Output/pmcmc_calibration_params.csv");
-    pmcmc_calibration_params << "date,mu_mean,mu_var,kappa_mean,kappa_var,theta_mean,theta_var,vol-of-vol_mean,vol-of-vol_var,rho_mean,rho_var" << '\n';
+    pmcmc_calibration_params << "date,mu_mean,mu_var,kappa_mean,kappa_var,theta_mean,theta_var,vol-of-vol_mean,vol-of-vol_var,rho_mean,rho_var,v_t_mean,v_t_var" << '\n';
 
     if(starting_steps >= no_of_timesteps){
         const int end_t = no_of_timesteps - 1;
@@ -677,6 +677,18 @@ int main() {
 
             int N_pmcmc = finalFilter.particles[0].size();
             int T_pmcmc = finalFilter.particles.size();
+
+            int last_time = T_pmcmc - 1;
+            double vt_mean = 0.0;
+            for(double v:finalFilter.particles[last_time]){
+                vt_mean += v;
+            }
+            vt_mean /= finalFilter.particles[last_time].size();
+            double vt_var = 0.0;
+            for(double v:finalFilter.particles[last_time]){
+                vt_var += (v - vt_mean) * (v - vt_mean);
+            }
+            vt_var /= finalFilter.particles[last_time].size();
             
             int numSampledPaths = 200;
             vector<vector<double>> sampledPaths(numSampledPaths,vector<double>(T_pmcmc,0));
@@ -694,7 +706,7 @@ int main() {
             PARAMS.varP_pmcmc = varP_pmcmc;
 
             // [TODO] - same end_t
-            pmcmc_calibration_params << Data.get_date(end_t) << ',' << meanP_pmcmc.mu << ',' << varP_pmcmc.mu << ',' << meanP_pmcmc.kappaP << ',' << varP_pmcmc.kappaP << ',' << meanP_pmcmc.thetaP << ',' << varP_pmcmc.thetaP << ',' << meanP_pmcmc.xi << ',' << varP_pmcmc.xi << meanP_pmcmc.rho << ',' << varP_pmcmc.rho << ',' << '\n';
+            pmcmc_calibration_params << Data.get_date(end_t) << ',' << meanP_pmcmc.mu << ',' << varP_pmcmc.mu << ',' << meanP_pmcmc.kappaP << ',' << varP_pmcmc.kappaP << ',' << meanP_pmcmc.thetaP << ',' << varP_pmcmc.thetaP << ',' << meanP_pmcmc.xi << ',' << varP_pmcmc.xi << ',' << meanP_pmcmc.rho << ',' << varP_pmcmc.rho << ',' <<vt_mean<<',' <<vt_var << '\n';
         }
     }
 

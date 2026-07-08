@@ -275,7 +275,7 @@ private:
 public:
     // Here we will initialize all the values
     generateData(){
-        time_steps = 120;         // the number of timesteps we want to go ahead from
+        time_steps = 12000;         // the number of timesteps we want to go ahead from
 
         // on average parameters jump once every week
         jump_intensity = 52;
@@ -300,7 +300,7 @@ public:
         // decide the moneylessness values
         moneyness_values = {0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2};
 
-        today = "2026-03-09";
+        today = "2010-01-01";
         QuantLib::Date initialDate = QuantLib::DateParser::parseISO(today);
         QuantLib::Calendar cal = QuantLib::TARGET();
         QuantLib::DayCounter dayCounter = QuantLib::Actual365Fixed();

@@ -1,0 +1,45 @@
+Single State Errors
+===================
+
+Overall
+               value
+MAE         9.915407
+Median AE   5.944310
+RMSE       16.882086
+Max AE    129.046000
+
+Moneyness Metrics
+                MAE  Median AE      RMSE       count
+Moneyness                                           
+ATM       10.999630   8.983660 13.846647 1140.000000
+ITM       16.867630   9.831645 26.672925 1630.000000
+OTM        5.248442   2.640360  8.147234 2693.000000
+
+Daily Metrics Summary
+                       value
+Average Daily MAE   9.898241
+Median Daily MAE    9.347236
+Average Daily RMSE 15.770194
+
+Multi State Errors
+==================
+
+Overall
+               value
+MAE         7.578292
+Median AE   2.795325
+RMSE       15.960161
+Max AE    129.447000
+
+Moneyness Metrics
+                MAE  Median AE      RMSE       count
+Moneyness                                           
+ATM        6.204555   4.364000  9.916199 1108.000000
+ITM       16.444184   7.104580 27.100329 1595.000000
+OTM        2.785662   1.004080  5.472674 2633.000000
+
+Daily Metrics Summary
+                       value
+Average Daily MAE   7.312982
+Median Daily MAE    7.072982
+Average Daily RMSE 13.784531

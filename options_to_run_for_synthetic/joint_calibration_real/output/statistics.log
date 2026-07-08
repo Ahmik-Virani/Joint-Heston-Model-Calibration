@@ -1,0 +1,1080 @@
+Time 1
+mu: mean=0.38649, variance=0.174469
+sigma: mean=0.535956, variance=0.00570323
+kappa: mean=5.53248, variance=7.20366
+theta: mean=0.0342688, variance=1.85125e-05
+rho: mean=-0.764275, variance=0.0218633
+lambda: mean=0.377176, variance=0.128932
+volatility: mean=0.0400887, variance=1.48386e-05
+-----------------------------------------------
+Time 2
+mu: mean=0.35601, variance=0.181048
+sigma: mean=0.552304, variance=0.00697449
+kappa: mean=5.61004, variance=7.56006
+theta: mean=0.0348901, variance=2.12732e-05
+rho: mean=-0.763372, variance=0.0227999
+lambda: mean=0.389902, variance=0.130438
+volatility: mean=0.040237, variance=1.78609e-05
+-----------------------------------------------
+Time 3
+mu: mean=0.363181, variance=0.196127
+sigma: mean=0.558396, variance=0.00688183
+kappa: mean=5.62446, variance=7.60614
+theta: mean=0.0349575, variance=1.92736e-05
+rho: mean=-0.770483, variance=0.0212611
+lambda: mean=0.383048, variance=0.12213
+volatility: mean=0.0387956, variance=4.87084e-05
+-----------------------------------------------
+Time 4
+mu: mean=0.426062, variance=0.190328
+sigma: mean=0.553989, variance=0.00556529
+kappa: mean=5.32093, variance=7.01265
+theta: mean=0.0355769, variance=2.4685e-05
+rho: mean=-0.764358, variance=0.0200036
+lambda: mean=0.377851, variance=0.119151
+volatility: mean=0.0336481, variance=5.12834e-05
+-----------------------------------------------
+Time 5
+mu: mean=0.399179, variance=0.210445
+sigma: mean=0.566922, variance=0.00515377
+kappa: mean=5.43327, variance=7.31922
+theta: mean=0.0357398, variance=2.25864e-05
+rho: mean=-0.768384, variance=0.0195624
+lambda: mean=0.380353, variance=0.108109
+volatility: mean=0.0350385, variance=4.13498e-05
+-----------------------------------------------
+Time 6
+mu: mean=0.327998, variance=0.23088
+sigma: mean=0.569511, variance=0.00483999
+kappa: mean=5.68291, variance=7.91122
+theta: mean=0.0352195, variance=2.05439e-05
+rho: mean=-0.772748, variance=0.0206672
+lambda: mean=0.395333, variance=0.102557
+volatility: mean=0.0350282, variance=4.63201e-05
+-----------------------------------------------
+Time 7
+mu: mean=0.275757, variance=0.236108
+sigma: mean=0.58191, variance=0.00491804
+kappa: mean=5.80275, variance=8.35698
+theta: mean=0.0358251, variance=1.86497e-05
+rho: mean=-0.77166, variance=0.021741
+lambda: mean=0.424465, variance=0.0976182
+volatility: mean=0.0330512, variance=6.20517e-05
+-----------------------------------------------
+Time 8
+mu: mean=0.216454, variance=0.241202
+sigma: mean=0.583365, variance=0.00431549
+kappa: mean=6.00811, variance=8.58949
+theta: mean=0.0357586, variance=1.62367e-05
+rho: mean=-0.77829, variance=0.0215644
+lambda: mean=0.434267, variance=0.0904778
+volatility: mean=0.0326385, variance=5.97999e-05
+-----------------------------------------------
+Time 9
+mu: mean=0.131217, variance=0.236133
+sigma: mean=0.600355, variance=0.00559481
+kappa: mean=6.40568, variance=8.89466
+theta: mean=0.0358888, variance=1.46849e-05
+rho: mean=-0.78715, variance=0.0207414
+lambda: mean=0.440573, variance=0.0824724
+volatility: mean=0.0325914, variance=8.46392e-05
+-----------------------------------------------
+Time 10
+mu: mean=0.341868, variance=0.203445
+sigma: mean=0.596566, variance=0.0233583
+kappa: mean=3.286, variance=2.11041
+theta: mean=0.0528051, variance=0.000257903
+rho: mean=-0.690923, variance=0.0217539
+lambda: mean=0.870646, variance=0.0559204
+volatility: mean=0.0322397, variance=1.22742e-06
+-----------------------------------------------
+Time 11
+mu: mean=0.346525, variance=0.202838
+sigma: mean=0.60016, variance=0.0235557
+kappa: mean=3.28038, variance=2.07585
+theta: mean=0.0524351, variance=0.00026017
+rho: mean=-0.689436, variance=0.0225712
+lambda: mean=0.870365, variance=0.0553328
+volatility: mean=0.0295957, variance=2.31174e-05
+-----------------------------------------------
+Time 12
+mu: mean=0.408904, variance=0.181546
+sigma: mean=0.60192, variance=0.0204165
+kappa: mean=3.39657, variance=2.03891
+theta: mean=0.0511769, variance=0.000210888
+rho: mean=-0.701955, variance=0.0233666
+lambda: mean=0.859262, variance=0.0585474
+volatility: mean=0.0326559, variance=2.84326e-05
+-----------------------------------------------
+Time 13
+mu: mean=0.384382, variance=0.199236
+sigma: mean=0.595827, variance=0.018586
+kappa: mean=3.33936, variance=2.13301
+theta: mean=0.0517146, variance=0.000242263
+rho: mean=-0.697661, variance=0.0234322
+lambda: mean=0.857162, variance=0.0565776
+volatility: mean=0.0348923, variance=3.24597e-05
+-----------------------------------------------
+Time 14
+mu: mean=0.33705, variance=0.218522
+sigma: mean=0.603335, variance=0.0198025
+kappa: mean=3.17854, variance=2.15528
+theta: mean=0.0534306, variance=0.000260012
+rho: mean=-0.685448, variance=0.0218442
+lambda: mean=0.871155, variance=0.0508697
+volatility: mean=0.0355533, variance=4.57726e-05
+-----------------------------------------------
+Time 15
+mu: mean=0.137502, variance=0.213598
+sigma: mean=0.617161, variance=0.0245801
+kappa: mean=2.39041, variance=0.997374
+theta: mean=0.0586608, variance=0.000311142
+rho: mean=-0.612834, variance=0.00550086
+lambda: mean=0.982681, variance=0.0131078
+volatility: mean=0.0372786, variance=9.49757e-05
+-----------------------------------------------
+Time 16
+mu: mean=0.180635, variance=0.20756
+sigma: mean=0.613939, variance=0.0232512
+kappa: mean=2.43839, variance=0.823711
+theta: mean=0.0575692, variance=0.000281842
+rho: mean=-0.613209, variance=0.00531485
+lambda: mean=0.976481, variance=0.0123797
+volatility: mean=0.0297464, variance=8.9126e-05
+-----------------------------------------------
+Time 17
+mu: mean=0.139402, variance=0.217735
+sigma: mean=0.604436, variance=0.0233969
+kappa: mean=2.36702, variance=0.838093
+theta: mean=0.0588987, variance=0.000311809
+rho: mean=-0.611206, variance=0.00612889
+lambda: mean=0.965969, variance=0.0110234
+volatility: mean=0.0291296, variance=3.80481e-05
+-----------------------------------------------
+Time 18
+mu: mean=0.690166, variance=0.153702
+sigma: mean=0.680213, variance=0.0675448
+kappa: mean=3.79433, variance=1.31561
+theta: mean=0.0880394, variance=0.000382722
+rho: mean=-0.601059, variance=0.0232444
+lambda: mean=0.381758, variance=0.65673
+volatility: mean=0.0203249, variance=1.51913e-05
+-----------------------------------------------
+Time 19
+mu: mean=0.641699, variance=0.153638
+sigma: mean=0.650611, variance=0.0608623
+kappa: mean=3.7422, variance=1.39625
+theta: mean=0.0897235, variance=0.000412524
+rho: mean=-0.619764, variance=0.0207159
+lambda: mean=0.437175, variance=0.699985
+volatility: mean=0.0260214, variance=6.89826e-05
+-----------------------------------------------
+Time 20
+mu: mean=0.808719, variance=0.058644
+sigma: mean=0.685323, variance=0.0801657
+kappa: mean=3.95268, variance=1.60805
+theta: mean=0.0947897, variance=0.00406688
+rho: mean=-0.616289, variance=0.031523
+lambda: mean=0.183003, variance=0.498846
+volatility: mean=0.0221733, variance=2.60139e-05
+-----------------------------------------------
+Time 21
+mu: mean=0.355324, variance=0.20858
+sigma: mean=0.392703, variance=0.0646744
+kappa: mean=1.21639, variance=1.00901
+theta: mean=0.282501, variance=0.0126036
+rho: mean=-0.8571, variance=0.0539361
+lambda: mean=0.885628, variance=1.22344
+volatility: mean=0.0259806, variance=3.6003e-06
+-----------------------------------------------
+Time 22
+mu: mean=0.327285, variance=0.212236
+sigma: mean=0.262459, variance=0.00277072
+kappa: mean=0.761718, variance=0.0196332
+theta: mean=0.314798, variance=0.00453354
+rho: mean=-0.945179, variance=0.00408495
+lambda: mean=1.33055, variance=0.0748646
+volatility: mean=0.0268579, variance=4.19349e-06
+-----------------------------------------------
+Time 23
+mu: mean=0.44031, variance=0.0291512
+sigma: mean=0.500439, variance=0.0130961
+kappa: mean=4.34588, variance=0.307628
+theta: mean=0.0805706, variance=0.000329646
+rho: mean=-0.787673, variance=0.0180428
+lambda: mean=-0.110211, variance=0.648724
+volatility: mean=0.0321359, variance=5.75894e-05
+-----------------------------------------------
+Time 24
+mu: mean=0.423856, variance=0.00263785
+sigma: mean=0.477432, variance=0.00156649
+kappa: mean=4.47156, variance=0.215458
+theta: mean=0.0752156, variance=0.000215941
+rho: mean=-0.770612, variance=0.00931435
+lambda: mean=-0.33842, variance=0.480643
+volatility: mean=0.0429956, variance=4.35189e-05
+-----------------------------------------------
+Time 25
+mu: mean=0.422655, variance=0.00314829
+sigma: mean=0.474055, variance=0.00132647
+kappa: mean=4.43924, variance=0.236982
+theta: mean=0.0763897, variance=0.000238428
+rho: mean=-0.776252, variance=0.00989471
+lambda: mean=-0.302024, variance=0.5185
+volatility: mean=0.0399412, variance=4.60697e-05
+-----------------------------------------------
+Time 26
+mu: mean=0.414761, variance=0.0025997
+sigma: mean=0.47102, variance=0.00223679
+kappa: mean=4.39893, variance=0.282318
+theta: mean=0.0773294, variance=0.000264869
+rho: mean=-0.783975, variance=0.010823
+lambda: mean=-0.253243, variance=0.565082
+volatility: mean=0.0396854, variance=2.78773e-05
+-----------------------------------------------
+Time 27
+mu: mean=0.412061, variance=0.00644907
+sigma: mean=0.531643, variance=0.0150189
+kappa: mean=4.19945, variance=0.582109
+theta: mean=0.0741966, variance=0.000513892
+rho: mean=-0.802629, variance=0.0122898
+lambda: mean=0.182456, variance=0.75678
+volatility: mean=0.0387451, variance=4.65971e-05
+-----------------------------------------------
+Time 28
+mu: mean=0.454187, variance=0.00717616
+sigma: mean=0.609969, variance=0.0203871
+kappa: mean=4.13754, variance=0.910086
+theta: mean=0.0629338, variance=0.000522876
+rho: mean=-0.785458, variance=0.00858197
+lambda: mean=0.479978, variance=0.671286
+volatility: mean=0.031595, variance=6.40591e-05
+-----------------------------------------------
+Time 29
+mu: mean=0.482129, variance=0.00832509
+sigma: mean=0.670612, variance=0.0119097
+kappa: mean=3.98189, variance=1.10645
+theta: mean=0.0521477, variance=0.000312039
+rho: mean=-0.794659, variance=0.00816458
+lambda: mean=0.864069, variance=0.312367
+volatility: mean=0.0318208, variance=5.02345e-05
+-----------------------------------------------
+Time 30
+mu: mean=0.499204, variance=0.00706739
+sigma: mean=0.676459, variance=0.00672399
+kappa: mean=3.92044, variance=1.18505
+theta: mean=0.0479468, variance=0.000133081
+rho: mean=-0.784691, variance=0.00732888
+lambda: mean=0.958097, variance=0.211237
+volatility: mean=0.0319224, variance=2.25754e-05
+-----------------------------------------------
+Time 31
+mu: mean=0.499868, variance=0.00797001
+sigma: mean=0.67342, variance=0.0065489
+kappa: mean=3.78204, variance=1.15636
+theta: mean=0.0479849, variance=7.24025e-05
+rho: mean=-0.78254, variance=0.00790154
+lambda: mean=1.0243, variance=0.174263
+volatility: mean=0.0330853, variance=3.259e-05
+-----------------------------------------------
+Time 32
+mu: mean=0.439563, variance=0.0178775
+sigma: mean=0.619071, variance=0.0132699
+kappa: mean=3.74691, variance=1.0566
+theta: mean=0.0479522, variance=5.35094e-05
+rho: mean=-0.844149, variance=0.0140176
+lambda: mean=0.991733, variance=0.130397
+volatility: mean=0.0355961, variance=2.82896e-05
+-----------------------------------------------
+Time 33
+mu: mean=0.431916, variance=0.0213018
+sigma: mean=0.600015, variance=0.0153888
+kappa: mean=3.68645, variance=1.01093
+theta: mean=0.0478108, variance=6.11579e-05
+rho: mean=-0.847975, variance=0.0147587
+lambda: mean=0.996033, variance=0.123456
+volatility: mean=0.0378207, variance=3.83978e-05
+-----------------------------------------------
+Time 34
+mu: mean=0.432292, variance=0.0249062
+sigma: mean=0.59627, variance=0.0132936
+kappa: mean=3.58729, variance=0.949118
+theta: mean=0.0489749, variance=6.22295e-05
+rho: mean=-0.846904, variance=0.0155836
+lambda: mean=1.01963, variance=0.115504
+volatility: mean=0.0360917, variance=3.9594e-05
+-----------------------------------------------
+Time 35
+mu: mean=0.433411, variance=0.0259212
+sigma: mean=0.591178, variance=0.0156973
+kappa: mean=3.52463, variance=0.876121
+theta: mean=0.049363, variance=6.95557e-05
+rho: mean=-0.842167, variance=0.017075
+lambda: mean=1.04091, variance=0.107048
+volatility: mean=0.0344718, variance=2.24801e-05
+-----------------------------------------------
+Time 36
+mu: mean=0.428634, variance=0.0277179
+sigma: mean=0.58709, variance=0.0148117
+kappa: mean=3.42375, variance=0.811648
+theta: mean=0.0514837, variance=5.80437e-05
+rho: mean=-0.838505, variance=0.0176665
+lambda: mean=1.06536, variance=0.0976944
+volatility: mean=0.0336401, variance=7.37958e-05
+-----------------------------------------------
+Time 37
+mu: mean=0.414677, variance=0.0267164
+sigma: mean=0.580526, variance=0.0156296
+kappa: mean=3.35854, variance=0.75135
+theta: mean=0.0518154, variance=5.77212e-05
+rho: mean=-0.842414, variance=0.0178913
+lambda: mean=1.07479, variance=0.0881436
+volatility: mean=0.0382675, variance=7.02978e-05
+-----------------------------------------------
+Time 38
+mu: mean=0.411497, variance=0.021046
+sigma: mean=0.598113, variance=0.0321884
+kappa: mean=3.20608, variance=0.234561
+theta: mean=0.0613246, variance=0.00061681
+rho: mean=-0.846078, variance=0.0259406
+lambda: mean=1.22246, variance=0.0920955
+volatility: mean=0.0334732, variance=4.20784e-05
+-----------------------------------------------
+Time 39
+mu: mean=0.272667, variance=0.0742258
+sigma: mean=0.768218, variance=0.0522567
+kappa: mean=3.29146, variance=0.81701
+theta: mean=0.105555, variance=0.000896516
+rho: mean=-0.721903, variance=0.0302229
+lambda: mean=1.13129, variance=0.401437
+volatility: mean=0.022359, variance=3.79882e-05
+-----------------------------------------------
+Time 40
+mu: mean=0.220554, variance=0.0882088
+sigma: mean=0.734003, variance=0.0476189
+kappa: mean=3.32661, variance=0.797153
+theta: mean=0.104646, variance=0.000859624
+rho: mean=-0.74463, variance=0.0279418
+lambda: mean=1.12192, variance=0.37624
+volatility: mean=0.0241231, variance=7.57984e-05
+-----------------------------------------------
+Time 41
+mu: mean=0.17033, variance=0.0916185
+sigma: mean=0.713391, variance=0.0481162
+kappa: mean=3.3549, variance=0.807353
+theta: mean=0.104244, variance=0.000770419
+rho: mean=-0.75944, variance=0.026233
+lambda: mean=1.13301, variance=0.337633
+volatility: mean=0.0270839, variance=7.45088e-05
+-----------------------------------------------
+Time 42
+mu: mean=0.290989, variance=0.0689979
+sigma: mean=0.993421, variance=0.0489149
+kappa: mean=4.16358, variance=5.06113
+theta: mean=0.0970317, variance=0.000134448
+rho: mean=-0.625272, variance=0.0275611
+lambda: mean=0.991999, variance=0.116541
+volatility: mean=0.0331842, variance=4.71361e-05
+-----------------------------------------------
+Time 43
+mu: mean=0.328276, variance=0.000229845
+sigma: mean=0.84262, variance=0.0681558
+kappa: mean=3.7004, variance=0.457983
+theta: mean=0.0958607, variance=0.000105316
+rho: mean=-0.696067, variance=0.0296117
+lambda: mean=0.835484, variance=0.195233
+volatility: mean=0.0336872, variance=0.000135609
+-----------------------------------------------
+Time 44
+mu: mean=0.746505, variance=0.227215
+sigma: mean=1.02615, variance=0.442413
+kappa: mean=3.30121, variance=2.99216
+theta: mean=0.117266, variance=0.0010806
+rho: mean=-0.61096, variance=0.0434484
+lambda: mean=0.37058, variance=0.470633
+volatility: mean=0.022968, variance=2.92472e-05
+-----------------------------------------------
+Time 45
+mu: mean=0.649067, variance=0.280471
+sigma: mean=0.926634, variance=0.406294
+kappa: mean=2.98588, variance=3.16962
+theta: mean=0.123544, variance=0.00115991
+rho: mean=-0.62175, variance=0.0407158
+lambda: mean=0.346619, variance=0.456925
+volatility: mean=0.0293837, variance=0.000106964
+-----------------------------------------------
+Time 46
+mu: mean=-0.0888724, variance=0.197872
+sigma: mean=0.31162, variance=0.0122881
+kappa: mean=1.7288, variance=1.12469
+theta: mean=0.112612, variance=0.000385567
+rho: mean=-0.92251, variance=0.000468191
+lambda: mean=0.0958385, variance=0.454979
+volatility: mean=0.0280458, variance=2.74562e-05
+-----------------------------------------------
+Time 47
+mu: mean=-0.130214, variance=0.121468
+sigma: mean=0.309097, variance=0.0108105
+kappa: mean=1.70006, variance=0.972044
+theta: mean=0.11164, variance=0.000372198
+rho: mean=-0.926728, variance=0.000319002
+lambda: mean=0.100113, variance=0.456979
+volatility: mean=0.0311418, variance=1.78525e-05
+-----------------------------------------------
+Time 48
+mu: mean=-0.105205, variance=0.107564
+sigma: mean=0.305025, variance=0.0113974
+kappa: mean=1.74439, variance=0.948139
+theta: mean=0.112888, variance=0.000407653
+rho: mean=-0.925092, variance=0.000498914
+lambda: mean=0.153818, variance=0.486252
+volatility: mean=0.0297475, variance=1.24266e-05
+-----------------------------------------------
+Time 49
+mu: mean=1.54083, variance=0.492912
+sigma: mean=0.184626, variance=0.0389602
+kappa: mean=2.40001, variance=13.9439
+theta: mean=0.243746, variance=0.0113707
+rho: mean=0.168178, variance=0.666439
+lambda: mean=1.35928, variance=2.94455
+volatility: mean=0.0169538, variance=0.000156046
+-----------------------------------------------
+Time 50
+mu: mean=1.73804, variance=0.249393
+sigma: mean=0.150145, variance=0.0280879
+kappa: mean=1.69316, variance=4.57516
+theta: mean=0.284425, variance=0.0102208
+rho: mean=0.370138, variance=0.638854
+lambda: mean=1.95823, variance=2.81152
+volatility: mean=0.0131197, variance=9.56782e-05
+-----------------------------------------------
+Time 51
+mu: mean=0.193194, variance=1.27381
+sigma: mean=0.617791, variance=0.0142388
+kappa: mean=2.16198, variance=0.319041
+theta: mean=0.191889, variance=0.00155452
+rho: mean=-0.65043, variance=0.0756022
+lambda: mean=0.855714, variance=1.28113
+volatility: mean=0.0189074, variance=9.69656e-05
+-----------------------------------------------
+Time 52
+mu: mean=-0.162398, variance=0.508015
+sigma: mean=0.604183, variance=0.0128296
+kappa: mean=2.27028, variance=0.273022
+theta: mean=0.204453, variance=0.00140042
+rho: mean=-0.732779, variance=0.0720695
+lambda: mean=1.22558, variance=1.02543
+volatility: mean=0.0166107, variance=6.75009e-05
+-----------------------------------------------
+Time 53
+mu: mean=-0.324276, variance=0.319146
+sigma: mean=0.580559, variance=0.0118401
+kappa: mean=2.26204, variance=0.193378
+theta: mean=0.21406, variance=0.00130055
+rho: mean=-0.798203, variance=0.0628891
+lambda: mean=1.43378, variance=0.840662
+volatility: mean=0.0210595, variance=4.73723e-05
+-----------------------------------------------
+Time 54
+mu: mean=-0.348885, variance=0.465852
+sigma: mean=0.546948, variance=0.0064213
+kappa: mean=2.28481, variance=0.179999
+theta: mean=0.222307, variance=0.000855449
+rho: mean=-0.855464, variance=0.0428086
+lambda: mean=1.65219, variance=0.461135
+volatility: mean=0.0221031, variance=8.37813e-05
+-----------------------------------------------
+Time 55
+mu: mean=-0.474105, variance=0.24244
+sigma: mean=0.531292, variance=0.00468773
+kappa: mean=2.33507, variance=0.130547
+theta: mean=0.226536, variance=0.000667911
+rho: mean=-0.889102, variance=0.0312804
+lambda: mean=1.77789, variance=0.236613
+volatility: mean=0.0212515, variance=4.07474e-05
+-----------------------------------------------
+Time 56
+mu: mean=0.162478, variance=0.241042
+sigma: mean=0.488547, variance=0.0102791
+kappa: mean=1.77392, variance=0.162363
+theta: mean=0.11, variance=0.000619964
+rho: mean=-0.608002, variance=0.00825834
+lambda: mean=-0.144846, variance=0.370771
+volatility: mean=0.0400155, variance=1.34663e-05
+-----------------------------------------------
+Time 57
+mu: mean=0.253188, variance=0.355533
+sigma: mean=0.504314, variance=0.00970551
+kappa: mean=1.81369, variance=0.250755
+theta: mean=0.10856, variance=0.000625509
+rho: mean=-0.602849, variance=0.00749595
+lambda: mean=-0.176135, variance=0.358969
+volatility: mean=0.0326147, variance=3.24289e-05
+-----------------------------------------------
+Time 58
+mu: mean=0.185701, variance=0.282738
+sigma: mean=0.507447, variance=0.00891422
+kappa: mean=1.79604, variance=0.194008
+theta: mean=0.109881, variance=0.000573939
+rho: mean=-0.601212, variance=0.0091436
+lambda: mean=-0.132302, variance=0.3547
+volatility: mean=0.0319431, variance=2.74454e-05
+-----------------------------------------------
+Time 59
+mu: mean=0.0822389, variance=0.186738
+sigma: mean=0.494751, variance=0.00727436
+kappa: mean=1.76187, variance=0.140751
+theta: mean=0.111098, variance=0.000550407
+rho: mean=-0.601188, variance=0.0101424
+lambda: mean=-0.0999851, variance=0.350599
+volatility: mean=0.0333025, variance=4.51653e-05
+-----------------------------------------------
+Time 60
+mu: mean=0.0323627, variance=0.338276
+sigma: mean=0.561662, variance=0.0175869
+kappa: mean=1.90565, variance=0.508832
+theta: mean=0.100162, variance=0.000119351
+rho: mean=-0.539105, variance=0.00474476
+lambda: mean=-0.0635475, variance=0.196748
+volatility: mean=0.0224311, variance=1.38895e-05
+-----------------------------------------------
+Time 61
+mu: mean=-0.0350591, variance=0.0426646
+sigma: mean=0.633328, variance=0.0350633
+kappa: mean=2.04703, variance=0.279004
+theta: mean=0.0988065, variance=0.000105242
+rho: mean=-0.536811, variance=0.00805476
+lambda: mean=0.148625, variance=0.346661
+volatility: mean=0.0290464, variance=1.22094e-05
+-----------------------------------------------
+Time 62
+mu: mean=0.00903879, variance=0.0441442
+sigma: mean=0.653757, variance=0.0360037
+kappa: mean=2.1468, variance=0.30471
+theta: mean=0.0971486, variance=0.000137512
+rho: mean=-0.551612, variance=0.00981007
+lambda: mean=0.2597, variance=0.381326
+volatility: mean=0.0248805, variance=3.93327e-05
+-----------------------------------------------
+Time 63
+mu: mean=0.030488, variance=0.0429864
+sigma: mean=0.674279, variance=0.0396008
+kappa: mean=2.22296, variance=0.322295
+theta: mean=0.0964759, variance=0.000137798
+rho: mean=-0.557897, variance=0.0114532
+lambda: mean=0.32321, variance=0.390264
+volatility: mean=0.0266675, variance=5.94505e-05
+-----------------------------------------------
+Time 64
+mu: mean=0.0833777, variance=0.0430065
+sigma: mean=0.708931, variance=0.0402045
+kappa: mean=2.36164, variance=0.326186
+theta: mean=0.0940574, variance=0.000138367
+rho: mean=-0.559241, variance=0.011994
+lambda: mean=0.467, variance=0.378353
+volatility: mean=0.0230958, variance=6.87432e-05
+-----------------------------------------------
+Time 65
+mu: mean=0.0814165, variance=0.0437061
+sigma: mean=0.690357, variance=0.0402871
+kappa: mean=2.33776, variance=0.33522
+theta: mean=0.0949453, variance=0.000142674
+rho: mean=-0.560144, variance=0.012317
+lambda: mean=0.440414, variance=0.384554
+volatility: mean=0.0280365, variance=6.79624e-05
+-----------------------------------------------
+Time 66
+mu: mean=1.62456, variance=1.44209
+sigma: mean=0.544049, variance=0.0647333
+kappa: mean=2.4748, variance=0.749401
+theta: mean=0.0777355, variance=0.000196153
+rho: mean=-0.677395, variance=0.0178643
+lambda: mean=0.204843, variance=0.723113
+volatility: mean=0.0220942, variance=3.28738e-06
+-----------------------------------------------
+Time 67
+mu: mean=1.22119, variance=1.19582
+sigma: mean=0.60141, variance=0.0637546
+kappa: mean=2.72073, variance=0.711078
+theta: mean=0.0813061, variance=0.000194796
+rho: mean=-0.689465, variance=0.0195488
+lambda: mean=0.423976, variance=0.635425
+volatility: mean=0.0263699, variance=2.50267e-05
+-----------------------------------------------
+Time 68
+mu: mean=1.25771, variance=1.12476
+sigma: mean=0.58295, variance=0.056134
+kappa: mean=2.70018, variance=0.660403
+theta: mean=0.0827621, variance=0.000219855
+rho: mean=-0.705899, variance=0.019796
+lambda: mean=0.486502, variance=0.628322
+volatility: mean=0.0263957, variance=3.12245e-06
+-----------------------------------------------
+Time 69
+mu: mean=1.37514, variance=1.14212
+sigma: mean=0.566038, variance=0.057246
+kappa: mean=2.6396, variance=0.608503
+theta: mean=0.0817923, variance=0.000222703
+rho: mean=-0.710221, variance=0.0211526
+lambda: mean=0.466339, variance=0.670761
+volatility: mean=0.0240184, variance=1.73092e-05
+-----------------------------------------------
+Time 70
+mu: mean=1.16341, variance=1.07285
+sigma: mean=0.616409, variance=0.0631741
+kappa: mean=2.7268, variance=0.549226
+theta: mean=0.0813981, variance=0.000229031
+rho: mean=-0.693675, variance=0.0242131
+lambda: mean=0.444338, variance=0.657137
+volatility: mean=0.0244251, variance=1.99634e-05
+-----------------------------------------------
+Time 71
+mu: mean=0.699128, variance=0.399825
+sigma: mean=0.731744, variance=0.0576939
+kappa: mean=3.08194, variance=0.452658
+theta: mean=0.0807325, variance=0.000225301
+rho: mean=-0.661239, variance=0.0280452
+lambda: mean=0.504461, variance=0.524909
+volatility: mean=0.0247604, variance=1.75174e-05
+-----------------------------------------------
+Time 72
+mu: mean=0.536505, variance=0.041342
+sigma: mean=0.630106, variance=0.0304685
+kappa: mean=2.65114, variance=1.42611
+theta: mean=0.0739329, variance=0.000562938
+rho: mean=-0.732798, variance=0.0212629
+lambda: mean=0.880976, variance=0.244685
+volatility: mean=0.0363465, variance=4.26005e-05
+-----------------------------------------------
+Time 73
+mu: mean=0.540033, variance=0.0445014
+sigma: mean=0.647117, variance=0.0323233
+kappa: mean=2.63911, variance=1.46085
+theta: mean=0.0741639, variance=0.000583394
+rho: mean=-0.722689, variance=0.0213341
+lambda: mean=0.868614, variance=0.257023
+volatility: mean=0.0345021, variance=6.52408e-05
+-----------------------------------------------
+Time 74
+mu: mean=0.529388, variance=0.0365597
+sigma: mean=0.584132, variance=0.0067352
+kappa: mean=2.46771, variance=1.28983
+theta: mean=0.0749785, variance=0.000635621
+rho: mean=-0.757536, variance=0.01418
+lambda: mean=1.02461, variance=0.135628
+volatility: mean=0.032412, variance=9.67439e-06
+-----------------------------------------------
+Time 75
+mu: mean=0.448681, variance=0.0623776
+sigma: mean=0.79263, variance=0.00739622
+kappa: mean=3.52463, variance=0.479633
+theta: mean=0.0559594, variance=2.39954e-05
+rho: mean=-0.638105, variance=0.00147861
+lambda: mean=0.878841, variance=0.0363119
+volatility: mean=0.0509012, variance=5.65248e-05
+-----------------------------------------------
+Time 76
+mu: mean=0.41595, variance=0.0702466
+sigma: mean=0.79826, variance=0.0107107
+kappa: mean=3.53126, variance=0.529185
+theta: mean=0.0561161, variance=1.85277e-05
+rho: mean=-0.632988, variance=0.00174416
+lambda: mean=0.858624, variance=0.0373646
+volatility: mean=0.0580961, variance=9.29895e-05
+-----------------------------------------------
+Time 77
+mu: mean=0.393369, variance=0.0724246
+sigma: mean=0.809962, variance=0.0135635
+kappa: mean=3.50713, variance=0.598081
+theta: mean=0.0562338, variance=1.6572e-05
+rho: mean=-0.626466, variance=0.00152496
+lambda: mean=0.843305, variance=0.0383796
+volatility: mean=0.0550061, variance=4.61294e-05
+-----------------------------------------------
+Time 78
+mu: mean=0.368736, variance=0.0708228
+sigma: mean=0.816586, variance=0.0126351
+kappa: mean=3.48068, variance=0.60652
+theta: mean=0.0561444, variance=1.56463e-05
+rho: mean=-0.621904, variance=0.0015234
+lambda: mean=0.826558, variance=0.0384248
+volatility: mean=0.0514861, variance=0.000138511
+-----------------------------------------------
+Time 79
+mu: mean=0.63357, variance=0.00131445
+sigma: mean=0.809898, variance=0.00672728
+kappa: mean=3.74207, variance=0.411943
+theta: mean=0.0551707, variance=9.52041e-05
+rho: mean=-0.663381, variance=0.000230835
+lambda: mean=0.96317, variance=0.0339245
+volatility: mean=0.0490429, variance=2.86606e-06
+-----------------------------------------------
+Time 80
+mu: mean=0.634475, variance=8.25596e-05
+sigma: mean=0.828106, variance=0.000135207
+kappa: mean=3.94562, variance=0.000337378
+theta: mean=0.0524906, variance=2.11298e-07
+rho: mean=-0.664545, variance=3.58491e-05
+lambda: mean=1.01945, variance=-2.32779e-17
+volatility: mean=0.0537915, variance=0.000100219
+-----------------------------------------------
+Time 81
+mu: mean=0.0567314, variance=0.0678936
+sigma: mean=0.52581, variance=0.0252045
+kappa: mean=2.56645, variance=0.686678
+theta: mean=0.0710697, variance=4.51901e-05
+rho: mean=-0.794203, variance=0.0330691
+lambda: mean=0.679983, variance=0.0596367
+volatility: mean=0.0493059, variance=7.20009e-07
+-----------------------------------------------
+Time 82
+mu: mean=0.0254718, variance=0.0707694
+sigma: mean=0.543689, variance=0.0266917
+kappa: mean=2.61405, variance=0.644621
+theta: mean=0.0723663, variance=4.30244e-05
+rho: mean=-0.790657, variance=0.0335024
+lambda: mean=0.711241, variance=0.0557191
+volatility: mean=0.0558105, variance=1.48224e-05
+-----------------------------------------------
+Time 83
+mu: mean=-0.000223365, variance=0.0724296
+sigma: mean=0.559099, variance=0.0300536
+kappa: mean=2.68895, variance=0.621556
+theta: mean=0.072147, variance=5.05236e-05
+rho: mean=-0.782141, variance=0.0335987
+lambda: mean=0.74144, variance=0.051716
+volatility: mean=0.067388, variance=2.97148e-05
+-----------------------------------------------
+Time 84
+mu: mean=0.00046519, variance=0.0728328
+sigma: mean=0.563061, variance=0.0309694
+kappa: mean=2.6889, variance=0.617151
+theta: mean=0.072248, variance=5.5054e-05
+rho: mean=-0.779032, variance=0.0346701
+lambda: mean=0.740705, variance=0.0517099
+volatility: mean=0.0753697, variance=0.000149228
+-----------------------------------------------
+Time 85
+mu: mean=0.00610592, variance=0.0723606
+sigma: mean=0.570096, variance=0.0334339
+kappa: mean=2.6979, variance=0.63574
+theta: mean=0.0716713, variance=6.09897e-05
+rho: mean=-0.782944, variance=0.0346213
+lambda: mean=0.736676, variance=0.050079
+volatility: mean=0.0704106, variance=0.000189242
+-----------------------------------------------
+Time 86
+mu: mean=0.00901299, variance=0.0726954
+sigma: mean=0.571448, variance=0.0330266
+kappa: mean=2.68771, variance=0.654883
+theta: mean=0.0712969, variance=6.84977e-05
+rho: mean=-0.789077, variance=0.035
+lambda: mean=0.736581, variance=0.0474393
+volatility: mean=0.0733315, variance=0.000313395
+-----------------------------------------------
+Time 87
+mu: mean=-0.0104615, variance=0.0761663
+sigma: mean=0.583381, variance=0.0354773
+kappa: mean=2.67376, variance=0.61954
+theta: mean=0.0723409, variance=6.93726e-05
+rho: mean=-0.77835, variance=0.0383452
+lambda: mean=0.75497, variance=0.0460708
+volatility: mean=0.0772807, variance=0.000165643
+-----------------------------------------------
+Time 88
+mu: mean=-0.0332683, variance=0.0639475
+sigma: mean=0.592005, variance=0.04243
+kappa: mean=2.69881, variance=0.577167
+theta: mean=0.0740563, variance=8.07946e-05
+rho: mean=-0.784583, variance=0.038953
+lambda: mean=0.780084, variance=0.0286495
+volatility: mean=0.0681275, variance=3.56156e-05
+-----------------------------------------------
+Time 89
+mu: mean=-0.0301951, variance=0.0654338
+sigma: mean=0.598781, variance=0.0419554
+kappa: mean=2.64909, variance=0.566694
+theta: mean=0.0747341, variance=7.94959e-05
+rho: mean=-0.780935, variance=0.0407165
+lambda: mean=0.778325, variance=0.0290977
+volatility: mean=0.0670758, variance=6.99929e-06
+-----------------------------------------------
+Time 90
+mu: mean=-0.0434166, variance=0.0665641
+sigma: mean=0.611888, variance=0.0393168
+kappa: mean=2.6356, variance=0.546959
+theta: mean=0.0753036, variance=7.53455e-05
+rho: mean=-0.767353, variance=0.0407122
+lambda: mean=0.783423, variance=0.0301587
+volatility: mean=0.0768971, variance=4.57271e-05
+-----------------------------------------------
+Time 91
+mu: mean=-0.025946, variance=0.0623441
+sigma: mean=0.59174, variance=0.0376647
+kappa: mean=2.57893, variance=0.552512
+theta: mean=0.0750869, variance=7.43298e-05
+rho: mean=-0.78077, variance=0.0402018
+lambda: mean=0.768614, variance=0.0289805
+volatility: mean=0.080735, variance=0.00012
+-----------------------------------------------
+Time 92
+mu: mean=0.253, variance=0.054474
+sigma: mean=0.541543, variance=0.0144163
+kappa: mean=2.28513, variance=0.758276
+theta: mean=0.0830236, variance=0.000154047
+rho: mean=-0.61331, variance=0.0120119
+lambda: mean=0.82369, variance=0.10166
+volatility: mean=0.0834236, variance=1.08241e-05
+-----------------------------------------------
+Time 93
+mu: mean=0.256302, variance=0.0567675
+sigma: mean=0.537386, variance=0.0149367
+kappa: mean=2.30096, variance=0.773927
+theta: mean=0.082544, variance=0.000161109
+rho: mean=-0.614105, variance=0.0130613
+lambda: mean=0.80688, variance=0.10634
+volatility: mean=0.0843789, variance=4.23706e-05
+-----------------------------------------------
+Time 94
+mu: mean=0.473929, variance=0.202807
+sigma: mean=0.394886, variance=0.0119976
+kappa: mean=2.68442, variance=2.49603
+theta: mean=0.0674138, variance=2.81018e-05
+rho: mean=-0.842892, variance=0.0180427
+lambda: mean=0.498786, variance=0.00430281
+volatility: mean=0.0646766, variance=7.89509e-06
+-----------------------------------------------
+Time 95
+mu: mean=0.397002, variance=0.201116
+sigma: mean=0.390531, variance=0.0114136
+kappa: mean=2.82284, variance=2.60544
+theta: mean=0.0673716, variance=2.48566e-05
+rho: mean=-0.845855, variance=0.0155062
+lambda: mean=0.502949, variance=0.00487221
+volatility: mean=0.0723918, variance=2.87646e-05
+-----------------------------------------------
+Time 96
+mu: mean=0.426258, variance=0.204608
+sigma: mean=0.390407, variance=0.0105529
+kappa: mean=2.74112, variance=2.50813
+theta: mean=0.0675914, variance=2.76409e-05
+rho: mean=-0.842147, variance=0.0170724
+lambda: mean=0.501625, variance=0.0047375
+volatility: mean=0.0701821, variance=3.28964e-05
+-----------------------------------------------
+Time 97
+mu: mean=0.436858, variance=0.204534
+sigma: mean=0.39336, variance=0.0117885
+kappa: mean=2.69761, variance=2.41262
+theta: mean=0.0678122, variance=1.93023e-05
+rho: mean=-0.838609, variance=0.0178506
+lambda: mean=0.501301, variance=0.00474634
+volatility: mean=0.0682052, variance=2.33154e-05
+-----------------------------------------------
+Time 98
+mu: mean=0.443332, variance=0.204692
+sigma: mean=0.396831, variance=0.0116045
+kappa: mean=2.6406, variance=2.31382
+theta: mean=0.0675705, variance=2.56067e-05
+rho: mean=-0.836511, variance=0.018905
+lambda: mean=0.50053, variance=0.00480722
+volatility: mean=0.069909, variance=1.59669e-05
+-----------------------------------------------
+Time 99
+mu: mean=0.169649, variance=0.102704
+sigma: mean=0.441711, variance=0.00938552
+kappa: mean=2.93612, variance=0.714007
+theta: mean=0.114192, variance=0.00042466
+rho: mean=-0.71735, variance=0.0311509
+lambda: mean=0.236085, variance=0.265594
+volatility: mean=0.0634334, variance=1.88468e-06
+-----------------------------------------------
+Time 100
+mu: mean=0.177545, variance=0.103968
+sigma: mean=0.454439, variance=0.0111397
+kappa: mean=2.94771, variance=0.709284
+theta: mean=0.114182, variance=0.000426209
+rho: mean=-0.716849, variance=0.0309048
+lambda: mean=0.235277, variance=0.263989
+volatility: mean=0.0611094, variance=1.67372e-05
+-----------------------------------------------
+Time 101
+mu: mean=0.19605, variance=0.108954
+sigma: mean=0.450709, variance=0.00991949
+kappa: mean=2.90769, variance=0.688094
+theta: mean=0.113625, variance=0.000432197
+rho: mean=-0.712737, variance=0.030372
+lambda: mean=0.212993, variance=0.284008
+volatility: mean=0.0577735, variance=8.78766e-06
+-----------------------------------------------
+Time 102
+mu: mean=0.181921, variance=0.105232
+sigma: mean=0.446426, variance=0.0112315
+kappa: mean=2.92324, variance=0.668368
+theta: mean=0.113281, variance=0.000412133
+rho: mean=-0.717257, variance=0.0313604
+lambda: mean=0.228544, variance=0.271452
+volatility: mean=0.0620548, variance=1.43469e-05
+-----------------------------------------------
+Time 103
+mu: mean=0.171857, variance=0.111355
+sigma: mean=0.443707, variance=0.0124747
+kappa: mean=2.98763, variance=0.669352
+theta: mean=0.112293, variance=0.000391213
+rho: mean=-0.726843, variance=0.0318648
+lambda: mean=0.212428, variance=0.277602
+volatility: mean=0.0642772, variance=9.39972e-05
+-----------------------------------------------
+Time 104
+mu: mean=0.152192, variance=0.0656298
+sigma: mean=0.602069, variance=0.0257186
+kappa: mean=3.41225, variance=3.66191
+theta: mean=0.12753, variance=0.000559008
+rho: mean=-0.690614, variance=0.0249373
+lambda: mean=0.690967, variance=0.0727695
+volatility: mean=0.0734998, variance=3.26175e-06
+-----------------------------------------------
+Time 105
+mu: mean=0.146647, variance=0.067774
+sigma: mean=0.592749, variance=0.0245764
+kappa: mean=3.3523, variance=3.64001
+theta: mean=0.129476, variance=0.000576639
+rho: mean=-0.689574, variance=0.0239584
+lambda: mean=0.697529, variance=0.0741012
+volatility: mean=0.0772617, variance=2.90064e-05
+-----------------------------------------------
+Time 106
+mu: mean=0.14652, variance=0.0711404
+sigma: mean=0.584084, variance=0.0235801
+kappa: mean=3.36121, variance=3.60116
+theta: mean=0.129757, variance=0.000568966
+rho: mean=-0.697525, variance=0.0242329
+lambda: mean=0.702164, variance=0.0754684
+volatility: mean=0.0753301, variance=5.77139e-05
+-----------------------------------------------
+Time 107
+mu: mean=0.550771, variance=0.149496
+sigma: mean=0.544433, variance=0.0382049
+kappa: mean=5.1266, variance=2.57366
+theta: mean=0.0935941, variance=6.80514e-05
+rho: mean=-0.843787, variance=0.020606
+lambda: mean=0.0338091, variance=0.179441
+volatility: mean=0.0663858, variance=1.74828e-06
+-----------------------------------------------
+Time 108
+mu: mean=0.58551, variance=0.157494
+sigma: mean=0.534614, variance=0.0350954
+kappa: mean=5.01265, variance=2.59271
+theta: mean=0.0930215, variance=6.95764e-05
+rho: mean=-0.851475, variance=0.0204647
+lambda: mean=0.00892319, variance=0.180734
+volatility: mean=0.0635182, variance=2.54813e-05
+-----------------------------------------------
+Time 109
+mu: mean=0.565849, variance=0.159825
+sigma: mean=0.541835, variance=0.0385375
+kappa: mean=5.04978, variance=2.58805
+theta: mean=0.0933279, variance=6.70846e-05
+rho: mean=-0.843378, variance=0.0217393
+lambda: mean=0.0228413, variance=0.183077
+volatility: mean=0.0640775, variance=2.88549e-05
+-----------------------------------------------
+Time 110
+mu: mean=0.556016, variance=0.159649
+sigma: mean=0.547849, variance=0.0390584
+kappa: mean=5.10043, variance=2.60023
+theta: mean=0.0932245, variance=6.51088e-05
+rho: mean=-0.839723, variance=0.0217806
+lambda: mean=0.0349901, variance=0.184468
+volatility: mean=0.063621, variance=5.09911e-05
+-----------------------------------------------
+Time 111
+mu: mean=0.583227, variance=0.164434
+sigma: mean=0.537435, variance=0.0438026
+kappa: mean=4.97638, variance=2.57914
+theta: mean=0.0920561, variance=7.98567e-05
+rho: mean=-0.843855, variance=0.0217929
+lambda: mean=0.0177896, variance=0.185962
+volatility: mean=0.0552004, variance=0.000105779
+-----------------------------------------------
+Time 112
+mu: mean=0.561654, variance=0.157087
+sigma: mean=0.557316, variance=0.0530248
+kappa: mean=4.98438, variance=2.40486
+theta: mean=0.0926443, variance=7.2802e-05
+rho: mean=-0.8297, variance=0.0249219
+lambda: mean=0.0389551, variance=0.182367
+volatility: mean=0.0512956, variance=0.000141328
+-----------------------------------------------
+Time 113
+mu: mean=0.517057, variance=0.140456
+sigma: mean=0.581329, variance=0.0564933
+kappa: mean=5.07381, variance=2.18542
+theta: mean=0.0940715, variance=6.1585e-05
+rho: mean=-0.808838, variance=0.0260062
+lambda: mean=0.0865964, variance=0.177687
+volatility: mean=0.0551994, variance=9.26384e-05
+-----------------------------------------------
+Time 114
+mu: mean=0.477706, variance=0.123624
+sigma: mean=0.629588, variance=0.0603351
+kappa: mean=5.14733, variance=1.94813
+theta: mean=0.0944119, variance=6.26455e-05
+rho: mean=-0.786903, variance=0.0265883
+lambda: mean=0.131151, variance=0.165947
+volatility: mean=0.0559276, variance=0.000161944
+-----------------------------------------------
+Time 115
+mu: mean=0.480701, variance=0.122085
+sigma: mean=0.629534, variance=0.068755
+kappa: mean=5.12954, variance=1.83988
+theta: mean=0.0943885, variance=7.30317e-05
+rho: mean=-0.778923, variance=0.0263471
+lambda: mean=0.132453, variance=0.157374
+volatility: mean=0.0493529, variance=0.000256198
+-----------------------------------------------
+Time 116
+mu: mean=0.813276, variance=0.443384
+sigma: mean=0.518686, variance=0.036108
+kappa: mean=2.65288, variance=1.10023
+theta: mean=0.082345, variance=0.000809751
+rho: mean=-0.695347, variance=0.0350344
+lambda: mean=-0.304202, variance=0.563907
+volatility: mean=0.0577389, variance=1.41304e-06
+-----------------------------------------------
+Time 117
+mu: mean=0.756911, variance=0.428399
+sigma: mean=0.517238, variance=0.0401922
+kappa: mean=2.67937, variance=1.15505
+theta: mean=0.083806, variance=0.000807949
+rho: mean=-0.703262, variance=0.0349952
+lambda: mean=-0.239557, variance=0.536046
+volatility: mean=0.0641219, variance=8.90585e-05
+-----------------------------------------------
+Time 118
+mu: mean=0.776717, variance=0.439339
+sigma: mean=0.507981, variance=0.0383767
+kappa: mean=2.66239, variance=1.169
+theta: mean=0.0834561, variance=0.000796256
+rho: mean=-0.704183, variance=0.0326151
+lambda: mean=-0.25866, variance=0.54792
+volatility: mean=0.0653884, variance=0.000103859
+-----------------------------------------------
+Time 119
+mu: mean=0.757506, variance=0.428209
+sigma: mean=0.503205, variance=0.0383745
+kappa: mean=2.65419, variance=1.18701
+theta: mean=0.0848051, variance=0.000781286
+rho: mean=-0.703643, variance=0.0335306
+lambda: mean=-0.232428, variance=0.536103
+volatility: mean=0.0619858, variance=0.000102785
+-----------------------------------------------
+Time 120
+mu: mean=1.0223, variance=0.761323
+sigma: mean=0.316557, variance=0.140183
+kappa: mean=1.03289, variance=0.052561
+theta: mean=0.604313, variance=0.0950274
+rho: mean=0.151335, variance=0.274343
+lambda: mean=-0.415817, variance=0.207875
+volatility: mean=0.105357, variance=0.00314303
+-----------------------------------------------

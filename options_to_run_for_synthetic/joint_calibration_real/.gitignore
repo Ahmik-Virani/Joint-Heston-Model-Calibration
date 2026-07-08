@@ -1,0 +1,8 @@
+.vscode/
+*.csv
+*.log
+test
+
+!output/
+!output/**/*.csv
+!output/**/*.log

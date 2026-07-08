@@ -1,0 +1,65 @@
+commit 974bb6143d544461f1713ac7062f26de763d8bac
+Author: lballabio[bot] <224797326+lballabio-bot@users.noreply.github.com>
+Date:   Thu, 16 Apr 2026 14:31:36 +0000
+
+    Set version to 1.42.1
+
+ CMakeLists.txt | 4 ++--
+ configure.ac   | 2 +-
+ ql/version.hpp | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+commit 12204e07675917a4075235970440ab202813e78d
+Author: Luigi Ballabio <luigi.ballabio@gmail.com>
+Date:   Thu, 16 Apr 2026 15:57:07 +0200
+
+    Update news
+
+ News.md | 24 ++++--------------------
+ 1 file changed, 4 insertions(+), 20 deletions(-)
+
+commit aa7b3a1959f01e606f2737e28dc8686bddbaae49
+Author: Luigi Ballabio <luigi.ballabio@gmail.com>
+Date:   Thu, 16 Apr 2026 15:32:55 +0200
+
+    Fix action title
+
+ .github/workflows/prepare-patch-release.yml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit fb7b4f3e144f8a0f3d1056bb34d1792a74fbae32
+Author: Luigi Ballabio <luigi.ballabio@gmail.com>
+Date:   Thu, 16 Apr 2026 14:59:01 +0200
+
+    Add action to prepare patch release
+
+ .github/workflows/prepare-patch-release.yml     | 44 +++++++++++++++++++++++++
+ .github/workflows/prepare-release-candidate.yml |  4 +--
+ .github/workflows/prepare-release.yml           |  4 +--
+ 3 files changed, 48 insertions(+), 4 deletions(-)
+
+commit 10e5d215d9a24ddf36d01fc42f15e95cff0ef931
+Merge: 41b0e1460 cf2dc1daf
+Author: Luigi Ballabio <luigi.ballabio@gmail.com>
+Date:   Thu, 16 Apr 2026 12:56:17 +0200
+
+    Avoid notification loop in GSR model (#2543)
+
+commit cf2dc1daf12a6c23dd6f50f339b9cd7e9f85a1ab
+Author: Luigi Ballabio <luigi.ballabio@gmail.com>
+Date:   Thu, 16 Apr 2026 10:13:34 +0200
+
+    Avoid notification loop in GSR model
+
+ ql/models/shortrate/onefactormodels/gsr.cpp |  6 ++--
+ test-suite/gsr.cpp                          | 47 +++++++++++++++++++++++++++++
+ 2 files changed, 50 insertions(+), 3 deletions(-)
+
+commit 05169469217ff94f06ab0b31aedc66c5577daa33
+Author: Luigi Ballabio <luigi.ballabio@gmail.com>
+Date:   Thu, 16 Apr 2026 09:16:54 +0200
+
+    Restore disabled test
+
+ test-suite/gsr.cpp | 3 ---
+ 1 file changed, 3 deletions(-)
